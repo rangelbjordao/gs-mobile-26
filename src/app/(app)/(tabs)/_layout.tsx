@@ -1,62 +1,48 @@
-import Colors from '@/src/constants/Colors';
-import FontAwesome from '@expo/vector-icons/FontAwesome';
-import { Link, Tabs } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+import { Tabs, useRouter } from 'expo-router';
 import React from 'react';
-import { Pressable, useColorScheme } from 'react-native';
-
-
-
-// You can explore the built-in icon families and icons on the web at https://icons.expo.fyi/
-function TabBarIcon(props: {
-  name: React.ComponentProps<typeof FontAwesome>['name'];
-  color: string;
-}) {
-  return <FontAwesome size={28} style={{ marginBottom: -3 }} {...props} />;
-}
+import { TouchableOpacity } from 'react-native';
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
-
-  function useClientOnlyValue(arg0: boolean, arg1: boolean): boolean | undefined {
-    throw new Error('Function not implemented.');
-  }
+  const router = useRouter();
 
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
-        // Disable the static render of the header on web
-        // to prevent a hydration error in React Navigation v6.
-        headerShown: useClientOnlyValue(false, true),
-      }}>
+        tabBarActiveTintColor: '#007AFF',
+        tabBarInactiveTintColor: '#8E8E93',
+        headerShown: true,
+        tabBarStyle: {
+          height: 60,
+          paddingBottom: 8,
+          paddingTop: 8,
+        },
+      }}
+    >
+      {/* Aba 1: Painel Principal / Home */}
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Tab One',
-          tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
+          title: 'Dashboard',
+          tabBarLabel: 'Início',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="analytics-outline" size={size} color={color} />
+          ),
+          // Adiciona o botão de informação no topo direito do cabeçalho
           headerRight: () => (
-            <Link href="/modal" asChild>
-              <Pressable>
-                {({ pressed }) => (
-                  <FontAwesome
-                    name="info-circle"
-                    size={25}
-                    color={Colors[colorScheme ?? 'light'].text}
-                    style={{ marginRight: 15, opacity: pressed ? 0.5 : 1 }}
-                  />
-                )}
-              </Pressable>
-            </Link>
+            <TouchableOpacity
+              onPress={() => router.push('/sobre' as any)}
+              style={{ marginRight: 15 }}
+            >
+              <Ionicons name="information-circle-outline" size={24} color="#007AFF" />
+            </TouchableOpacity>
           ),
         }}
       />
-      <Tabs.Screen
-        name="two"
-        options={{
-          title: 'Tab Two',
-          tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
-        }}
-      />
+
+      {/* Outras abas de funcionalidades do seu CRUD entrarão aqui embaixo */}
+      {/* Exemplo: Aba 2: Fazendas/Registros */}
+
     </Tabs>
   );
 }

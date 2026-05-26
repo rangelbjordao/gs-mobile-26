@@ -1,14 +1,26 @@
-import { StyleSheet } from 'react-native';
+import React from 'react';
+import { StyleSheet, Text, View } from 'react-native';
+import BotaoCustomizado from '../../../components/shared/BotaoCustomizado';
+import { useAuth } from '../../../context/AuthContext';
 
-import EditScreenInfo from '@/src/components/EditScreenInfo';
-import { Text, View } from '@/src/components/Themed';
+export default function HomeScreen() {
+  const { logout } = useAuth();
 
-export default function TabOneScreen() {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Tab One</Text>
-      <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
-      <EditScreenInfo path="app/(tabs)/index.tsx" />
+      <Text style={styles.title}>Painel Principal</Text>
+      <Text style={styles.subtitle}>Área protegida do aplicativo</Text>
+
+      <Text style={styles.info}>
+        Parabéns! Você passou pela autenticação e a proteção de rotas funcionou de verdade.
+      </Text>
+
+      {/* Botão de Logout */}
+      <BotaoCustomizado
+        title="Sair do Aplicativo"
+        onPress={logout}
+        style={styles.logoutButton}
+      />
     </View>
   );
 }
@@ -16,16 +28,31 @@ export default function TabOneScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
     justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+    backgroundColor: '#fff',
   },
   title: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: 'bold',
+    marginBottom: 8,
+    color: '#333',
   },
-  separator: {
-    marginVertical: 30,
-    height: 1,
+  subtitle: {
+    fontSize: 16,
+    color: '#666',
+    marginBottom: 30,
+  },
+  info: {
+    fontSize: 14,
+    color: '#888',
+    textAlign: 'center',
+    marginBottom: 40,
+    paddingHorizontal: 20,
+  },
+  logoutButton: {
+    backgroundColor: '#FF3B30',
     width: '80%',
   },
 });
