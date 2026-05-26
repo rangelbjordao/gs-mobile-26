@@ -1,58 +1,109 @@
-import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-import BotaoCustomizado from '../../../components/shared/BotaoCustomizado';
-import { useAuth } from '../../../context/AuthContext';
+import { useRouter } from 'expo-router';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, FlatList, StatusBar, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import CardTour from '../../../components/tours/CardTour';
+import { Colors } from '../../../constants/Colors';
+import api from '../../../services/api';
+import { Tour } from '../../../types/tour';
 
 export default function HomeScreen() {
-  const { logout } = useAuth();
+  const router = useRouter();
+  const [tours, setTours] = useState<Tour[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function carregarTours() {
+      try {
+        const response = await api.get('/tours');
+        setTours(response.data);
+      } catch (error) {
+        console.error('Erro ao buscar tours espaciais:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    carregarTours();
+  }, []);
+
+  const handleIrParaDetalhes = (idTour: number) => {
+    router.push({
+      pathname: '/(app)/tours/detalhes',
+      params: { id: idTour }
+    } as any);
+  };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Painel Principal</Text>
-      <Text style={styles.subtitle}>Área protegida do aplicativo</Text>
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <StatusBar barStyle="light-content" backgroundColor={Colors.background} />
 
-      <Text style={styles.info}>
-        Parabéns! Você passou pela autenticação e a proteção de rotas funcionou de verdade.
-      </Text>
+      {loading ? (
+        <View style={styles.loaderContainer}>
+          <ActivityIndicator size="large" color={Colors.primary} />
+          <Text style={styles.loaderText}>Sincronizando rotas espaciais...</Text>
+        </View>
+      ) : (
+        <FlatList
+          data={tours}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={({ item }) => (
+            <CardTour
+              tour={item}
+              onPress={() => handleIrParaDetalhes(item.id)}
+            />
+          )}
 
-      {/* Botão de Logout */}
-      <BotaoCustomizado
-        title="Sair do Aplicativo"
-        onPress={logout}
-        style={styles.logoutButton}
-      />
-    </View>
+          ListHeaderComponent={
+            <View style={styles.headerContainer}>
+              <Text style={styles.subtitle}>Bem-vindo ao Futuro</Text>
+              <Text style={styles.title}>Explore o Espaço</Text>
+            </View>
+          }
+
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
+        />
+      )}
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background,
   },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 8,
-    color: '#333',
+  headerContainer: {
+    paddingHorizontal: 0,
+    paddingTop: 20,
+    paddingBottom: 25,
   },
   subtitle: {
-    fontSize: 16,
-    color: '#666',
-    marginBottom: 30,
-  },
-  info: {
+    color: Colors.primary,
     fontSize: 14,
-    color: '#888',
-    textAlign: 'center',
-    marginBottom: 40,
-    paddingHorizontal: 20,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
   },
-  logoutButton: {
-    backgroundColor: '#FF3B30',
-    width: '80%',
+  title: {
+    color: Colors.text,
+    fontSize: 28,
+    fontWeight: 'bold',
+    marginTop: 4,
+  },
+  loaderContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loaderText: {
+    color: Colors.textMuted,
+    marginTop: 12,
+    fontSize: 14,
+  },
+  listContent: {
+    paddingHorizontal: 20,
+    paddingBottom: 20,
   },
 });
