@@ -34,6 +34,16 @@ export default function TabLayout() {
       />
 
       <Tabs.Screen
+        name="reservas"
+        options={{
+          tabBarLabel: 'Reservas',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="ticket-outline" size={size} color={color} />
+          ),
+        }}
+      />
+
+      <Tabs.Screen
         name="perfil"
         options={{
           tabBarLabel: 'Perfil',
