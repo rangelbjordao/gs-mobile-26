@@ -74,7 +74,7 @@ export default function DetalhesTour() {
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         {tour.imagem && (
-          <Image source={{ uri: tour.imagem }} style={styles.image} />
+          <Image source={tour.imagem} style={styles.image} />
         )}
 
         <View style={styles.content}>

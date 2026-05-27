@@ -23,7 +23,7 @@ export default function CardTour({ tour, onPress }: CardTourProps) {
     <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.85}>
       {/* Imagem do Destino Espacial */}
       {tour.imagem && (
-        <Image source={{ uri: tour.imagem }} style={styles.image} />
+        <Image source={tour.imagem} style={styles.image} />
       )}
 
       <View style={styles.content}>

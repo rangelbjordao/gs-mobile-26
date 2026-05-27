@@ -25,8 +25,7 @@ const toursMockados: Tour[] = [
     duracao_dias: 3,
     preco: 250000,
     capacidade_maxima: 6,
-    imagem:
-      "https://images.unsplash.com/photo-1614728894747-a83421e2b9c9?q=80&w=400",
+    imagem: require("../../assets/images/orbita.jpg"),
   },
   {
     id: 2,
@@ -37,8 +36,7 @@ const toursMockados: Tour[] = [
     duracao_dias: 7,
     preco: 750000,
     capacidade_maxima: 4,
-    imagem:
-      "https://images.unsplash.com/photo-1506703719100-a0f3a48c0f86?q=80&w=400",
+    imagem: require("../../assets/images/lua.jpg"),
   },
   {
     id: 3,
@@ -49,8 +47,7 @@ const toursMockados: Tour[] = [
     duracao_dias: 45,
     preco: 2500000,
     capacidade_maxima: 8,
-    imagem:
-      "https://images.unsplash.com/photo-1612892483236-42d68a57623d?q=80&w=400",
+    imagem: require("../../assets/images/marte.jpg"),
   },
 ];
 

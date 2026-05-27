@@ -6,7 +6,7 @@ export interface Tour {
   duracao_dias: number;
   preco: number;
   capacidade_maxima: number;
-  imagem?: string;
+  imagem: any;
 }
 
 export interface DataTour {
