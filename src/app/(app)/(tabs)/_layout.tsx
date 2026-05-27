@@ -21,7 +21,7 @@ export default function TabLayout() {
         },
       }}
     >
-      {/* Aba 1: Painel Principal / Home */}
+
       <Tabs.Screen
         name="index"
         options={{
@@ -32,7 +32,15 @@ export default function TabLayout() {
         }}
       />
 
-      {/* As próximas abas (Minhas Reservas, Perfil) vão entrar aqui embaixo sem Header também */}
+      <Tabs.Screen
+        name="perfil"
+        options={{
+          tabBarLabel: 'Perfil',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="person-outline" size={size} color={color} />
+          ),
+        }}
+      />
 
     </Tabs>
   );
