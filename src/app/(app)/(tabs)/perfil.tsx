@@ -1,9 +1,10 @@
+import { Colors } from '@/constants/Colors';
+import { useAuth } from '@/context/AuthContext';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Colors } from '../../../constants/Colors';
-import { useAuth } from '../../../context/AuthContext';
+
 
 export default function Perfil() {
   const { logout } = useAuth();

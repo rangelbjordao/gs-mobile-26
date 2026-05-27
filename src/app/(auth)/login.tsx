@@ -1,11 +1,13 @@
+
+import BotaoCustomizado from '@/components/shared/BotaoCustomizado';
+import InputCustomizado from '@/components/shared/InputCustomizado';
+import { Colors } from '@/constants/Colors';
+import { useAuth } from '@/context/AuthContext';
+import api from '@/services/api';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import BotaoCustomizado from '../../components/shared/BotaoCustomizado';
-import InputCustomizado from '../../components/shared/InputCustomizado';
-import { Colors } from '../../constants/Colors';
-import { useAuth } from '../../context/AuthContext';
-import api from '../../services/api';
+
 
 export default function Login() {
   const { login } = useAuth();

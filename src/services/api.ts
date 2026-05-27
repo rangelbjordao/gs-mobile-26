@@ -1,7 +1,7 @@
+import { Tour } from "@/types/tour";
 import axios from "axios";
 import MockAdapter from "axios-mock-adapter";
 import * as SecureStore from "expo-secure-store";
-import { Tour } from "../types/tour";
 
 const api = axios.create({
   baseURL: "http://localhost:8080",

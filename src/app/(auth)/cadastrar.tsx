@@ -1,10 +1,11 @@
+import BotaoCustomizado from '@/components/shared/BotaoCustomizado';
+import InputCustomizado from '@/components/shared/InputCustomizado';
+import { Colors } from '@/constants/Colors';
+import api from '@/services/api';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import BotaoCustomizado from '../../components/shared/BotaoCustomizado';
-import InputCustomizado from '../../components/shared/InputCustomizado';
-import { Colors } from '../../constants/Colors';
-import api from '../../services/api';
+
 
 export default function Cadastrar() {
   const router = useRouter();

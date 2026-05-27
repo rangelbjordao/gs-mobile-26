@@ -1,11 +1,12 @@
+import CardTour from '@/components/tours/CardTour';
+import { Colors } from '@/constants/Colors';
+import api from '@/services/api';
+import { Tour } from '@/types/tour';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, StatusBar, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import CardTour from '../../../components/tours/CardTour';
-import { Colors } from '../../../constants/Colors';
-import api from '../../../services/api';
-import { Tour } from '../../../types/tour';
+
 
 export default function HomeScreen() {
   const router = useRouter();

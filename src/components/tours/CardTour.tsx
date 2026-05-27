@@ -1,8 +1,9 @@
+import { Colors } from '@/constants/Colors';
+import { Tour } from '@/types/tour';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { Colors } from '../../constants/Colors';
-import { Tour } from '../../types/tour';
+
 
 interface CardTourProps {
   tour: Tour;
