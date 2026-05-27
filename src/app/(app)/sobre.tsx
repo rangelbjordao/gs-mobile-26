@@ -26,7 +26,6 @@ export default function SobreApp() {
           <Ionicons name="arrow-back" size={24} color={Colors.text} />
         </TouchableOpacity>
         <Text style={styles.navTitle}>Sobre o Aplicativo</Text>
-        <View style={{ width: 40 }} />
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
@@ -51,9 +50,10 @@ const styles = StyleSheet.create({
   navHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
     paddingHorizontal: 20,
     paddingVertical: 15,
+    minHeight: 70,
+    position: 'relative',
   },
   backButton: {
     width: 40,
@@ -62,11 +62,17 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surface,
     justifyContent: 'center',
     alignItems: 'center',
+    zIndex: 2,
   },
   navTitle: {
     color: Colors.text,
     fontSize: 18,
     fontWeight: 'bold',
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    textAlign: 'center',
+    zIndex: 1,
   },
   scrollContent: {
     paddingHorizontal: 20,

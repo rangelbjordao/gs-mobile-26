@@ -17,7 +17,6 @@ export default function ChatbotIA() {
   const flatListRef = useRef<FlatList>(null);
   const [input, setInput] = useState('');
 
-
   const [mensagens, setMensagens] = useState<Mensagem[]>([
     {
       id: '1',
@@ -45,25 +44,6 @@ export default function ChatbotIA() {
 
     // Rola a lista para o fim
     setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
-
-    /* ESPAÇO RESERVADO PARA A INTEGRAÇÃO COM A API FUTURA:
-      
-      try {
-        const response = await api.post('/chatbot', { mensagem: novaMensagemUsuario.texto });
-        
-        const novaMensagemIA: Mensagem = {
-          id: Math.random().toString(),
-          texto: response.data.resposta, // Ajustar conforme o retorno do Spring AI
-          remetente: 'IA',
-          horario: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
-        };
-        
-        setMensagens(prev => [...prev, novaMensagemIA]);
-        setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
-      } catch (error) {
-        console.error("Erro ao integrar com a IA:", error);
-      }
-    */
   };
 
   return (
@@ -75,14 +55,7 @@ export default function ChatbotIA() {
         <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
           <Ionicons name="arrow-back" size={24} color={Colors.text} />
         </TouchableOpacity>
-        <View style={styles.headerTitleContainer}>
-          <Text style={styles.navTitle}>OrbitBot IA</Text>
-          <View style={styles.statusContainer}>
-            <View style={styles.statusDot} />
-            <Text style={styles.statusText}>Sistemas Online</Text>
-          </View>
-        </View>
-        <View style={{ width: 40 }} />
+        <Text style={styles.navTitle}>OrbitBot IA</Text>
       </View>
 
       {/* Área do Chat */}
@@ -114,7 +87,6 @@ export default function ChatbotIA() {
           }}
         />
 
-        {/* Input fixo na parte inferior */}
         <View style={styles.inputArea}>
           <TextInput
             style={styles.textInput}
@@ -141,11 +113,12 @@ const styles = StyleSheet.create({
   navHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
     paddingHorizontal: 20,
     paddingVertical: 15,
     borderBottomWidth: 1,
     borderColor: Colors.border,
+    minHeight: 70,
+    position: 'relative',
   },
   backButton: {
     width: 40,
@@ -154,30 +127,17 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surface,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  headerTitleContainer: {
-    alignItems: 'center',
+    zIndex: 2,
   },
   navTitle: {
     color: Colors.text,
     fontSize: 18,
     fontWeight: 'bold',
-  },
-  statusContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 2,
-  },
-  statusDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: '#34C759',
-    marginRight: 5,
-  },
-  statusText: {
-    color: Colors.textMuted,
-    fontSize: 11,
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    textAlign: 'center',
+    zIndex: 1,
   },
   chatContent: {
     paddingHorizontal: 16,
