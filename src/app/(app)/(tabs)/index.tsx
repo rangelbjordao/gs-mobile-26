@@ -2,11 +2,11 @@ import CardTour from '@/components/tours/CardTour';
 import { Colors } from '@/constants/Colors';
 import api from '@/services/api';
 import { Tour } from '@/types/tour';
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, FlatList, StatusBar, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, FlatList, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -66,6 +66,15 @@ export default function HomeScreen() {
           showsVerticalScrollIndicator={false}
         />
       )}
+
+      {/* BOTÃO FLUTUANTE DA IA */}
+      <TouchableOpacity
+        style={styles.fabButton}
+        onPress={() => router.push('/chatbot')}
+        activeOpacity={0.8}
+      >
+        <Ionicons name="planet" size={26} color={Colors.background} />
+      </TouchableOpacity>
     </SafeAreaView>
   );
 }
@@ -105,6 +114,22 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingHorizontal: 20,
-    paddingBottom: 20,
+    paddingBottom: 80,
+  },
+  fabButton: {
+    position: 'absolute',
+    bottom: 20,
+    right: 20,
+    backgroundColor: Colors.primary,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 6,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
   },
 });
