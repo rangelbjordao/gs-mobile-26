@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import BotaoCustomizado from '../../components/shared/BotaoCustomizado';
 import InputCustomizado from '../../components/shared/InputCustomizado';
+import { Colors } from '../../constants/Colors';
 import api from '../../services/api';
 
 export default function Cadastrar() {
@@ -20,7 +21,6 @@ export default function Cadastrar() {
 
     setLoading(true);
     try {
-      // Envia os dados para a nossa API simulada (Mock)
       await api.post('/auth/cadastrar', { nome, email, senha });
 
       Alert.alert('Sucesso!', 'Sua conta foi criada com sucesso.', [
@@ -62,9 +62,13 @@ export default function Cadastrar() {
         onChangeText={setSenha}
       />
 
-      <BotaoCustomizado title="Cadastrar" loading={loading} onPress={handleCadastro} />
+      <BotaoCustomizado
+        title="Cadastrar"
+        loading={loading}
+        onPress={handleCadastro}
+        style={styles.button}
+      />
 
-      {/* Link para voltar para a tela de Login */}
       <TouchableOpacity
         onPress={() => router.replace('/(auth)/login' as any)}
         style={styles.linkContainer}
@@ -76,10 +80,38 @@ export default function Cadastrar() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20, backgroundColor: '#f5f5f5' },
-  title: { fontSize: 26, fontWeight: 'bold', color: '#333', marginBottom: 4 },
-  subtitle: { fontSize: 15, color: '#666', marginBottom: 30 },
-  linkContainer: { marginTop: 20, padding: 10 },
-  linkText: { fontSize: 14, color: '#666' },
-  linkBold: { color: '#007AFF', fontWeight: 'bold' }
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+    backgroundColor: Colors.background
+  },
+  title: {
+    fontSize: 26,
+    fontWeight: 'bold',
+    color: Colors.text,
+    marginBottom: 4
+  },
+  subtitle: {
+    fontSize: 15,
+    color: Colors.textMuted,
+    marginBottom: 30
+  },
+  button: {
+    backgroundColor: Colors.primary,
+    marginTop: 20
+  },
+  linkContainer: {
+    marginTop: 20,
+    padding: 10
+  },
+  linkText: {
+    fontSize: 14,
+    color: Colors.textMuted
+  },
+  linkBold: {
+    color: Colors.primary,
+    fontWeight: 'bold'
+  }
 });

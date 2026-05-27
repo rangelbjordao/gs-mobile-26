@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import BotaoCustomizado from '../../components/shared/BotaoCustomizado';
 import InputCustomizado from '../../components/shared/InputCustomizado';
+import { Colors } from '../../constants/Colors';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
 
@@ -20,10 +21,7 @@ export default function Login() {
 
     setLoading(true);
     try {
-      // Faz a chamada como se o backend existisse de verdade
       const response = await api.post('/auth/login', { email, senha });
-
-      // Salva o token falso no SecureStore e destranca o app
       await login(response.data.token);
     } catch (error: any) {
       Alert.alert('Erro no Login', error.response?.data?.message || 'Erro de conexão');
@@ -34,7 +32,8 @@ export default function Login() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Bem-vindo ao App</Text>
+      <Text style={styles.subtitle}>ORBITPASS</Text>
+      <Text style={styles.title}>Bem-vindo ao Futuro</Text>
 
       <InputCustomizado
         label="E-mail"
@@ -53,14 +52,19 @@ export default function Login() {
         onChangeText={setSenha}
       />
 
-      <BotaoCustomizado title="Entrar" loading={loading} onPress={handleEntrar} />
+      <BotaoCustomizado
+        title="Entrar"
+        loading={loading}
+        onPress={handleEntrar}
+        style={styles.button}
+      />
 
       <TouchableOpacity
         onPress={() => router.push('/(auth)/cadastrar' as any)}
-        style={{ marginTop: 20, padding: 10 }}
+        style={styles.linkContainer}
       >
-        <Text style={{ color: '#666', fontSize: 14 }}>
-          Não tem uma conta? <Text style={{ color: '#007AFF', fontWeight: 'bold' }}>Cadastre-se</Text>
+        <Text style={styles.linkText}>
+          Não tem uma conta? <Text style={styles.linkBold}>Cadastre-se</Text>
         </Text>
       </TouchableOpacity>
     </View>
@@ -68,6 +72,40 @@ export default function Login() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20, backgroundColor: '#f5f5f5' },
-  title: { fontSize: 24, fontWeight: 'bold', marginBottom: 30, color: '#333' }
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+    backgroundColor: Colors.background
+  },
+  subtitle: {
+    color: Colors.primary,
+    fontSize: 14,
+    fontWeight: '600',
+    letterSpacing: 2,
+    marginBottom: 4
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    marginBottom: 40,
+    color: Colors.text
+  },
+  button: {
+    backgroundColor: Colors.primary,
+    marginTop: 20
+  },
+  linkContainer: {
+    marginTop: 20,
+    padding: 10
+  },
+  linkText: {
+    color: Colors.textMuted,
+    fontSize: 14
+  },
+  linkBold: {
+    color: Colors.primary,
+    fontWeight: 'bold'
+  }
 });
