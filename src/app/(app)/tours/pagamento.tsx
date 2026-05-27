@@ -227,7 +227,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#233142',
+    borderColor: Colors.border,
   },
   tourName: {
     color: Colors.text,
@@ -266,7 +266,7 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#233142',
+    borderColor: Colors.border,
   },
   metodoSelecionado: {
     borderColor: Colors.primary,
@@ -291,7 +291,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#233142',
+    borderColor: Colors.border,
   },
   totalLabel: {
     color: Colors.textMuted,

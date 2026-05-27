@@ -133,7 +133,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surface,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#233142',
+    borderColor: Colors.border,
     overflow: 'hidden',
     marginBottom: 20,
   },

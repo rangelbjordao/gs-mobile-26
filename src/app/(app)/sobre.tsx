@@ -78,7 +78,7 @@ const styles = StyleSheet.create({
     padding: 20,
     marginTop: 10,
     borderWidth: 1,
-    borderColor: '#233142',
+    borderColor: Colors.border,
     alignItems: 'center',
   },
   appName: {

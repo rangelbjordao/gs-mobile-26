@@ -199,7 +199,7 @@ const styles = StyleSheet.create({
     padding: 16,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#233142',
+    borderColor: Colors.border,
   },
   infoLabel: {
     color: Colors.textMuted,

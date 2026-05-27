@@ -72,7 +72,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: '#233142',
+    borderColor: Colors.border,
   },
   avatarContainer: {
     marginBottom: 12,
@@ -91,7 +91,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surface,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#233142',
+    borderColor: Colors.border,
     overflow: 'hidden',
   },
   optionButton: {
