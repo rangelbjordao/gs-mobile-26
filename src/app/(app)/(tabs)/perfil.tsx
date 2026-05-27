@@ -1,13 +1,14 @@
 import { Colors } from '@/constants/Colors';
 import { useAuth } from '@/context/AuthContext';
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import React from 'react';
 import { StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-
 export default function Perfil() {
   const { logout } = useAuth();
+  const router = useRouter();
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -23,6 +24,20 @@ export default function Perfil() {
         </View>
         <Text style={styles.userName}>Recruta Espacial</Text>
         <Text style={styles.userEmail}>recruta@orbitpass.com</Text>
+      </View>
+
+      <View style={styles.optionsContainer}>
+        <TouchableOpacity
+          style={styles.optionButton}
+          onPress={() => router.push('/sobre')}
+          activeOpacity={0.7}
+        >
+          <View style={styles.optionLeft}>
+            <Ionicons name="information-circle-outline" size={22} color={Colors.primary} />
+            <Text style={styles.optionText}>Sobre o Aplicativo</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={18} color={Colors.textMuted} />
+        </TouchableOpacity>
       </View>
 
       <View style={styles.menuContainer}>
@@ -55,7 +70,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 24,
     alignItems: 'center',
-    marginBottom: 24,
+    marginBottom: 20,
     borderWidth: 1,
     borderColor: '#233142',
   },
@@ -71,6 +86,28 @@ const styles = StyleSheet.create({
   userEmail: {
     color: Colors.textMuted,
     fontSize: 14,
+  },
+  optionsContainer: {
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#233142',
+    overflow: 'hidden',
+  },
+  optionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 16,
+  },
+  optionLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  optionText: {
+    color: Colors.text,
+    fontSize: 16,
+    marginLeft: 12,
   },
   menuContainer: {
     flex: 1,
