@@ -1,13 +1,10 @@
-
 import BotaoCustomizado from '@/components/shared/BotaoCustomizado';
 import InputCustomizado from '@/components/shared/InputCustomizado';
 import { Colors } from '@/constants/Colors';
 import { useAuth } from '@/context/AuthContext';
-import api from '@/services/api';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-
 
 export default function Login() {
   const { login } = useAuth();
@@ -15,18 +12,38 @@ export default function Login() {
   const [senha, setSenha] = useState('');
   const [loading, setLoading] = useState(false);
 
+  const [erroEmail, setErroEmail] = useState('');
+  const [erroSenha, setErroSenha] = useState('');
+
   const handleEntrar = async () => {
+    setErroEmail('');
+    setErroSenha('');
+
     if (!email || !senha) {
-      Alert.alert('Erro', 'Preencha todos os campos.');
+      if (!email) setErroEmail('O e-mail é obrigatório.');
+      if (!senha) setErroSenha('A senha é obrigatória.');
       return;
     }
 
     setLoading(true);
     try {
-      const response = await api.post('/auth/login', { email, senha });
-      await login(response.data.token);
+      await login(email, senha);
     } catch (error: any) {
-      Alert.alert('Erro no Login', error.response?.data?.message || 'Erro de conexão');
+      const apiError = error.response?.data;
+
+      if (apiError && apiError.details && Array.isArray(apiError.details)) {
+        apiError.details.forEach((detalhe: string) => {
+          const erroMinusculo = detalhe.toLowerCase();
+          if (erroMinusculo.includes('email')) {
+            setErroEmail(detalhe);
+          } else if (erroMinusculo.includes('password') || erroMinusculo.includes('senha')) {
+            setErroSenha(detalhe);
+          }
+        });
+      } else {
+        const mensagemErro = apiError?.message || 'E-mail ou senha incorretos.';
+        Alert.alert('Erro no Login', mensagemErro);
+      }
     } finally {
       setLoading(false);
     }
@@ -44,6 +61,7 @@ export default function Login() {
         onChangeText={setEmail}
         autoCapitalize="none"
         keyboardType="email-address"
+        error={erroEmail}
       />
 
       <InputCustomizado
@@ -52,6 +70,7 @@ export default function Login() {
         secureTextEntry
         value={senha}
         onChangeText={setSenha}
+        error={erroSenha}
       />
 
       <BotaoCustomizado

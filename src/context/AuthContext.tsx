@@ -1,11 +1,14 @@
+import api from '@/services/api';
 import { useRouter, useSegments } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import { Alert } from 'react-native';
 
 interface AuthContextType {
   token: string | null;
   isLoading: boolean;
-  login: (token: string) => Promise<void>;
+  login: (email: string, senha: string) => Promise<void>;
+  cadastrar: (name: string, email: string, password: string, phone?: string) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -17,7 +20,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const segments = useSegments();
 
-  // Busca o token criptografado no dispositivo ao iniciar o app
   useEffect(() => {
     async function loadStorageData() {
       try {
@@ -27,6 +29,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       } catch (e) {
         console.error('Erro ao ler o SecureStore', e);
+        Alert.alert('Erro de Inicialização', 'Não foi possível carregar os dados locais da sessão.');
       } finally {
         setIsLoading(false);
       }
@@ -34,7 +37,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     loadStorageData();
   }, []);
 
-  // Monitor de rotas: executa toda vez que o Token ou a rota atual muda
   useEffect(() => {
     if (isLoading) return;
 
@@ -48,12 +50,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [token, isLoading, segments]);
 
-  const login = async (userToken: string) => {
+  const login = async (email: string, password: string) => {
     try {
-      await SecureStore.setItemAsync('user_token', userToken);
-      setToken(userToken);
-    } catch (e) {
-      console.error('Erro ao salvar token', e);
+      const response = await api.post('/users/login', { email, password });
+      const { token: jwtToken } = response.data;
+
+      await SecureStore.setItemAsync('user_token', jwtToken);
+      setToken(jwtToken);
+    } catch (e: any) {
+      console.warn(`[Login] Falha na requisição: Status ${e.response?.status}`);
+      throw e;
+    }
+  };
+
+  const cadastrar = async (name: string, email: string, password: string, phone?: string) => {
+    try {
+      await api.post('/users', {
+        name,
+        email,
+        password,
+        role: "DEFAULT_USER",
+        phone: phone || null
+      });
+    } catch (e: any) {
+      console.warn(`[Cadastro] Falha na requisição: Status ${e.response?.status}`);
+
+      throw e;
     }
   };
 
@@ -63,11 +85,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setToken(null);
     } catch (e) {
       console.error('Erro ao remover token', e);
+      Alert.alert('Erro ao Sair', 'Não foi possível encerrar a sessão com segurança.');
     }
   };
 
   return (
-    <AuthContext.Provider value={{ token, isLoading, login, logout }}>
+    <AuthContext.Provider value={{ token, isLoading, login, cadastrar, logout }}>
       {children}
     </AuthContext.Provider>
   );

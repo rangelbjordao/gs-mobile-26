@@ -4,17 +4,13 @@ import MockAdapter from "axios-mock-adapter";
 import * as SecureStore from "expo-secure-store";
 
 const api = axios.create({
-  baseURL: "http://localhost:8080",
+  baseURL: "http://192.168.15.58:8080/api",
   timeout: 10000,
   headers: { "Content-Type": "application/json" },
 });
 
-// ==========================================
-// 🌌 MOCK DE DADOS - ORBITPASS
-// ==========================================
-const mock = new MockAdapter(api, { delayResponse: 1200 }); // Delay para ver o Loader ativo
-
-// Dados falsos de Tours Espaciais para renderizar o app
+// AMBIENTE DE MOCKS TEMPORÁRIOS
+const mock = new MockAdapter(api, { delayResponse: 1200 });
 const toursMockados: Tour[] = [
   {
     id: 1,
@@ -51,17 +47,16 @@ const toursMockados: Tour[] = [
   },
 ];
 
-// Mock do Login
-mock.onPost("/auth/login").reply(200, { token: "token-jwt-falso-orbitpass" });
-mock.onPost("/auth/cadastrar").reply(21);
-
-// Mock da Listagem de Tours (GET /tours)
 mock.onGet("/tours").reply(200, toursMockados);
-// ==========================================
+mock.onAny().passThrough();
 
 api.interceptors.request.use(
   async (config) => {
     try {
+      if (config.url === "/users/login") {
+        return config;
+      }
+
       const token = await SecureStore.getItemAsync("user_token");
       if (token && config.headers) {
         config.headers.Authorization = `Bearer ${token}`;

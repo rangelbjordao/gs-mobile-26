@@ -1,34 +1,61 @@
 import BotaoCustomizado from '@/components/shared/BotaoCustomizado';
 import InputCustomizado from '@/components/shared/InputCustomizado';
 import { Colors } from '@/constants/Colors';
-import api from '@/services/api';
+import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-
 export default function Cadastrar() {
   const router = useRouter();
+  const { cadastrar } = useAuth();
+
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
   const [loading, setLoading] = useState(false);
 
+  const [erroNome, setErroNome] = useState('');
+  const [erroEmail, setErroEmail] = useState('');
+  const [erroSenha, setErroSenha] = useState('');
+
   const handleCadastro = async () => {
+    setErroNome('');
+    setErroEmail('');
+    setErroSenha('');
+
     if (!nome || !email || !senha) {
-      Alert.alert('Erro', 'Por favor, preencha todos os campos.');
+      if (!nome) setErroNome('O nome é obrigatório.');
+      if (!email) setErroEmail('O e-mail é obrigatório.');
+      if (!senha) setErroSenha('A senha é obrigatória.');
       return;
     }
 
     setLoading(true);
     try {
-      await api.post('/auth/cadastrar', { nome, email, senha });
+      await cadastrar(nome, email, senha);
 
       Alert.alert('Sucesso!', 'Sua conta foi criada com sucesso.', [
         { text: 'Fazer Login', onPress: () => router.replace('/(auth)/login' as any) }
       ]);
     } catch (error: any) {
-      Alert.alert('Erro no Cadastro', error.response?.data?.message || 'Falha ao conectar ao servidor.');
+      const apiError = error.response?.data;
+
+      if (apiError && apiError.details && Array.isArray(apiError.details)) {
+        apiError.details.forEach((detalhe: string) => {
+          const erroMinusculo = detalhe.toLowerCase();
+
+          if (erroMinusculo.includes('password') || erroMinusculo.includes('senha')) {
+            setErroSenha(detalhe);
+          } else if (erroMinusculo.includes('email')) {
+            setErroEmail(detalhe);
+          } else if (erroMinusculo.includes('name') || erroMinusculo.includes('nome')) {
+            setErroNome(detalhe);
+          }
+        });
+      } else {
+        Alert.alert('Erro no Cadastro', apiError?.message || 'Falha ao conectar ao servidor.');
+      }
     } finally {
       setLoading(false);
     }
@@ -44,6 +71,7 @@ export default function Cadastrar() {
         placeholder="Digite seu nome"
         value={nome}
         onChangeText={setNome}
+        error={erroNome}
       />
 
       <InputCustomizado
@@ -53,6 +81,7 @@ export default function Cadastrar() {
         onChangeText={setEmail}
         autoCapitalize="none"
         keyboardType="email-address"
+        error={erroEmail}
       />
 
       <InputCustomizado
@@ -61,6 +90,7 @@ export default function Cadastrar() {
         secureTextEntry
         value={senha}
         onChangeText={setSenha}
+        error={erroSenha}
       />
 
       <BotaoCustomizado
