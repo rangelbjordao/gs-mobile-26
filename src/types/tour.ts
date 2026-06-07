@@ -3,10 +3,7 @@ export interface Tour {
   nome: string;
   destino: string;
   descricao: string;
-  duracao_dias: number;
   preco: number;
-  capacidade_maxima: number;
-  imagem: any;
 }
 
 export interface DataTour {

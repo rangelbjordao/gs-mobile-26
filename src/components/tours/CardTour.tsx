@@ -2,8 +2,7 @@ import { Colors } from '@/constants/Colors';
 import { Tour } from '@/types/tour';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 interface CardTourProps {
   tour: Tour;
@@ -21,34 +20,28 @@ export default function CardTour({ tour, onPress }: CardTourProps) {
 
   return (
     <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.85}>
-      {/* Imagem do Destino Espacial */}
-      {tour.imagem && (
-        <Image source={tour.imagem} style={styles.image} />
-      )}
-
       <View style={styles.content}>
         {/* Destino */}
         <View style={styles.badge}>
           <Ionicons name="planet-outline" size={14} color={Colors.primary} />
-          <Text style={styles.badgeText}>{tour.destino.toUpperCase()}</Text>
+          <Text style={styles.badgeText}>{(tour.destino || 'Espaço').toUpperCase()}</Text>
         </View>
 
-        {/* Nome do Tour */}
+        {/* Nome */}
         <Text style={styles.title}>{tour.nome}</Text>
 
-        {/* Descrição Curta */}
-        <Text style={styles.description} numberOfLines={2}>
+        {/* Descrição */}
+        <Text style={styles.description} numberOfLines={3}>
           {tour.descricao}
         </Text>
 
+        {/* Rodapé Financeiro */}
         <View style={styles.footer}>
-          {/* Duração */}
           <View style={styles.infoRow}>
-            <Ionicons name="time-outline" size={16} color={Colors.textMuted} />
-            <Text style={styles.infoText}>{tour.duracao_dias} dias</Text>
+            <Ionicons name="wallet-outline" size={16} color={Colors.textMuted} />
+            <Text style={styles.infoText}>Valor do assento</Text>
           </View>
 
-          {/* Preço */}
           <Text style={styles.price}>{formatarPreco(tour.preco)}</Text>
         </View>
       </View>
@@ -60,7 +53,7 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: Colors.surface,
     borderRadius: 16,
-    marginBottom: 20,
+    marginBottom: 16,
     overflow: 'hidden',
     borderWidth: 1,
     borderColor: Colors.border,
@@ -70,13 +63,8 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 5,
   },
-  image: {
-    width: '100%',
-    height: 180,
-    backgroundColor: '#151c24',
-  },
   content: {
-    padding: 16,
+    padding: 20,
   },
   badge: {
     flexDirection: 'row',
@@ -86,7 +74,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 20,
-    marginBottom: 10,
+    marginBottom: 12,
   },
   badgeText: {
     color: Colors.primary,
@@ -97,15 +85,15 @@ const styles = StyleSheet.create({
   },
   title: {
     color: Colors.text,
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
-    marginBottom: 6,
+    marginBottom: 8,
   },
   description: {
     color: Colors.textMuted,
     fontSize: 14,
     lineHeight: 20,
-    marginBottom: 16,
+    marginBottom: 20,
   },
   footer: {
     flexDirection: 'row',
@@ -113,7 +101,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderTopWidth: 1,
     borderTopColor: 'rgba(255,255,255,0.05)',
-    paddingTop: 12,
+    paddingTop: 14,
   },
   infoRow: {
     flexDirection: 'row',
@@ -126,7 +114,7 @@ const styles = StyleSheet.create({
   },
   price: {
     color: Colors.primary,
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 'bold',
   },
 });

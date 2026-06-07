@@ -1,6 +1,4 @@
-import { Tour } from "@/types/tour";
 import axios from "axios";
-import MockAdapter from "axios-mock-adapter";
 import * as SecureStore from "expo-secure-store";
 
 const api = axios.create({
@@ -9,51 +7,10 @@ const api = axios.create({
   headers: { "Content-Type": "application/json" },
 });
 
-// AMBIENTE DE MOCKS TEMPORÁRIOS
-const mock = new MockAdapter(api, { delayResponse: 1200 });
-const toursMockados: Tour[] = [
-  {
-    id: 1,
-    nome: "Experiência Órbita Azul",
-    destino: "Órbita Terrestre Baixa",
-    descricao:
-      "Contemple a curvatura da Terra e experimente a gravidade zero por 3 dias a bordo da estação OrbitPass Alpha.",
-    duracao_dias: 3,
-    preco: 250000,
-    capacidade_maxima: 6,
-    imagem: require("../../assets/images/orbita.jpg"),
-  },
-  {
-    id: 2,
-    nome: "Legado de Artemis",
-    destino: "Órbita e Superfície Lunar",
-    descricao:
-      "Uma jornada inesquecível passando pelo lado oculto da Lua, com direito a um pouso histórico na Cratera Shackleton.",
-    duracao_dias: 7,
-    preco: 750000,
-    capacidade_maxima: 4,
-    imagem: require("../../assets/images/lua.jpg"),
-  },
-  {
-    id: 3,
-    nome: "Horizonte Vermelho",
-    destino: "Sobrevoo de Marte",
-    descricao:
-      "A maior aventura da humanidade. Um voo de estande de longa duração sobrevoando os cânions de Valles Marineris no planeta vermelho.",
-    duracao_dias: 45,
-    preco: 2500000,
-    capacidade_maxima: 8,
-    imagem: require("../../assets/images/marte.jpg"),
-  },
-];
-
-mock.onGet("/tours").reply(200, toursMockados);
-mock.onAny().passThrough();
-
 api.interceptors.request.use(
   async (config) => {
     try {
-      if (config.url === "/users/login") {
+      if (config.url === "/users/login" || config.url === "/users") {
         return config;
       }
 
@@ -62,7 +19,7 @@ api.interceptors.request.use(
         config.headers.Authorization = `Bearer ${token}`;
       }
     } catch (error) {
-      console.error("Erro interceptor", error);
+      console.error("Erro no interceptor de requisição", error);
     }
     return config;
   },

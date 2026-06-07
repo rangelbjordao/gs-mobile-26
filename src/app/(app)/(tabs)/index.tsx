@@ -17,7 +17,16 @@ export default function HomeScreen() {
     async function carregarTours() {
       try {
         const response = await api.get('/tours');
-        setTours(response.data);
+
+        const toursFormatados: Tour[] = response.data.map((item: any) => ({
+          id: item.id,
+          nome: item.name ?? "Tour Espacial",
+          destino: item.destination ?? "Espaço",
+          descricao: item.description ?? "",
+          preco: Number(item.price ?? 0),
+        }));
+
+        setTours(toursFormatados);
       } catch (error) {
         console.error('Erro ao buscar tours espaciais:', error);
       } finally {
@@ -54,14 +63,12 @@ export default function HomeScreen() {
               onPress={() => handleIrParaDetalhes(item.id)}
             />
           )}
-
           ListHeaderComponent={
             <View style={styles.headerContainer}>
               <Text style={styles.subtitle}>Bem-vindo ao Futuro</Text>
               <Text style={styles.title}>Explore o Espaço</Text>
             </View>
           }
-
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
         />
