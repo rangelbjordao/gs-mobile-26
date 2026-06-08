@@ -6,7 +6,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function PagamentoTour() {
   const router = useRouter();
@@ -73,7 +72,7 @@ export default function PagamentoTour() {
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={Colors.background} />
 
       <View style={styles.navHeader}>
@@ -93,7 +92,6 @@ export default function PagamentoTour() {
             <View style={styles.divider} />
             <View style={styles.row}>
               <Text style={styles.label}>Duração da Estadia</Text>
-              <Text style={styles.value}>{tour.duracao_dias} dias</Text>
             </View>
             <View style={styles.row}>
               <Text style={styles.label}>Assento Reservado</Text>
@@ -168,7 +166,7 @@ export default function PagamentoTour() {
           onPress={handleConfirmarPagamento}
         />
       </View>
-    </SafeAreaView>
+    </View>
   );
 }
 

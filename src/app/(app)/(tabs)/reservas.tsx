@@ -3,7 +3,6 @@ import { Ingresso } from '@/types/tour';
 import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import { FlatList, StatusBar, StyleSheet, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function Reservas() {
   const [reservas] = useState<Ingresso[]>([
@@ -29,7 +28,7 @@ export default function Reservas() {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <View style={styles.container} >
       <StatusBar barStyle="light-content" backgroundColor={Colors.background} />
 
       <View style={styles.header}>
@@ -90,7 +89,7 @@ export default function Reservas() {
           </View>
         )}
       />
-    </SafeAreaView>
+    </View>
   );
 }
 

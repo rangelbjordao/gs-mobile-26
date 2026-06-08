@@ -6,7 +6,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function DetalhesTour() {
   const router = useRouter();
@@ -74,7 +73,7 @@ export default function DetalhesTour() {
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <View style={styles.container} >
       <StatusBar barStyle="light-content" backgroundColor={Colors.background} />
 
       <View style={styles.navHeader}>
@@ -110,7 +109,7 @@ export default function DetalhesTour() {
           style={styles.actionButton}
         />
       </View>
-    </SafeAreaView>
+    </View>
   );
 }
 

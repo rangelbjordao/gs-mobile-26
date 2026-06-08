@@ -4,7 +4,6 @@ import Constants from 'expo-constants';
 import { useRouter } from 'expo-router';
 import React from 'react';
 import { ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function SobreApp() {
   const router = useRouter();
@@ -18,7 +17,7 @@ export default function SobreApp() {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <View style={styles.container} >
       <StatusBar barStyle="light-content" backgroundColor={Colors.background} />
 
       <View style={styles.navHeader}>
@@ -38,7 +37,7 @@ export default function SobreApp() {
           <Text style={styles.appDescription}>{infoProjeto.descricao}</Text>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
