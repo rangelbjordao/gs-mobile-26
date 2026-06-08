@@ -1,4 +1,5 @@
 import api from '@/services/api';
+import { User } from '@/types/usuario';
 import { useRouter, useSegments } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
 import React, { createContext, useContext, useEffect, useState } from 'react';
@@ -6,6 +7,7 @@ import { Alert } from 'react-native';
 
 interface AuthContextType {
   token: string | null;
+  user: User | null;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
   cadastrar: (name: string, email: string, password: string) => Promise<void>;
@@ -14,8 +16,36 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+function extrairUsuarioDoToken(jwtToken: string): User | null {
+  try {
+    const payloadBase64 = jwtToken.split('.')[1];
+    const payloadString = decodeURIComponent(
+      atob(payloadBase64)
+        .split('')
+        .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join('')
+    );
+    const payloadJson = JSON.parse(payloadString);
+
+    const emailLogin = payloadJson.sub;
+    const parteNome = emailLogin ? emailLogin.split('@')[0] : 'Recruta';
+    const nomeFormatado = parteNome.charAt(0).toUpperCase() + parteNome.slice(1);
+
+    return {
+      id: payloadJson.id,
+      name: payloadJson.name ?? nomeFormatado,
+      email: emailLogin ?? 'astronauta@orbitpass.com',
+      role: payloadJson.role ?? (payloadJson.authorities?.includes('ROLE_ADMIN') ? 'ADMIN' : 'DEFAULT_USER')
+    };
+  } catch (e) {
+    console.error('Falha ao decodificar payload do JWT:', e);
+    return null;
+  }
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [token, setToken] = useState<string | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
   const segments = useSegments();
@@ -26,6 +56,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const storedToken = await SecureStore.getItemAsync('user_token');
         if (storedToken) {
           setToken(storedToken);
+          const dadosUsuario = extrairUsuarioDoToken(storedToken);
+          setUser(dadosUsuario);
         }
       } catch (e) {
         console.error('Erro ao ler o SecureStore', e);
@@ -56,7 +88,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const { token: jwtToken } = response.data;
 
       await SecureStore.setItemAsync('user_token', jwtToken);
+
+      const dadosUsuario = extrairUsuarioDoToken(jwtToken);
+
       setToken(jwtToken);
+      setUser(dadosUsuario);
     } catch (e: any) {
       console.warn(`[Login] Falha na requisição: Status ${e.response?.status}`);
       throw e;
@@ -81,6 +117,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       await SecureStore.deleteItemAsync('user_token');
       setToken(null);
+      setUser(null);
     } catch (e) {
       console.error('Erro ao remover token', e);
       Alert.alert('Erro ao Sair', 'Não foi possível encerrar a sessão com segurança.');
@@ -88,7 +125,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ token, isLoading, login, cadastrar, logout }}>
+    <AuthContext.Provider value={{ token, user, isLoading, login, cadastrar, logout }}>
       {children}
     </AuthContext.Provider>
   );

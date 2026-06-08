@@ -6,11 +6,13 @@ import React from 'react';
 import { StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function Perfil() {
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
   const router = useRouter();
 
+  const ehAdmin = user?.role === 'ADMIN';
+
   return (
-    <View style={styles.container} >
+    <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={Colors.background} />
 
       <View style={styles.header}>
@@ -19,10 +21,20 @@ export default function Perfil() {
 
       <View style={styles.profileCard}>
         <View style={styles.avatarContainer}>
-          <Ionicons name="person-circle-outline" size={80} color={Colors.primary} />
+          <Ionicons
+            name={ehAdmin ? "shield-checkmark-outline" : "person-circle-outline"}
+            size={80}
+            color={Colors.primary}
+          />
         </View>
-        <Text style={styles.userName}>Recruta Espacial</Text>
-        <Text style={styles.userEmail}>recruta@orbitpass.com</Text>
+        <Text style={styles.userName}>{user?.name ?? "Recruta Espacial"}</Text>
+        <Text style={styles.userEmail}>{user?.email ?? "recruta@orbitpass.com"}</Text>
+
+        <View style={styles.badgeRole}>
+          <Text style={styles.badgeText}>
+            {ehAdmin ? 'COMANDANTE' : 'ASTRONAUTA'}
+          </Text>
+        </View>
       </View>
 
       <View style={styles.optionsContainer}>
@@ -55,6 +67,12 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
     paddingHorizontal: 20,
   },
+  centerContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: Colors.background
+  },
   header: {
     paddingTop: 10,
     paddingBottom: 20,
@@ -85,6 +103,25 @@ const styles = StyleSheet.create({
   userEmail: {
     color: Colors.textMuted,
     fontSize: 14,
+  },
+  userPhone: {
+    color: Colors.textMuted,
+    fontSize: 13,
+    marginBottom: 8
+  },
+  badgeRole: {
+    backgroundColor: 'rgba(0, 229, 255, 0.1)', paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 20,
+    marginTop: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 229, 255, 0.2)'
+  },
+  badgeText: {
+    color: Colors.primary,
+    fontSize: 10,
+    fontWeight: 'bold',
+    letterSpacing: 1
   },
   optionsContainer: {
     backgroundColor: Colors.surface,
