@@ -1,8 +1,9 @@
 import { Colors } from '@/constants/Colors';
+import api from '@/services/api';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useRef, useState } from 'react';
-import { FlatList, KeyboardAvoidingView, Platform, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, FlatList, KeyboardAvoidingView, Platform, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 interface Mensagem {
   id: string;
@@ -15,6 +16,7 @@ export default function ChatbotIA() {
   const router = useRouter();
   const flatListRef = useRef<FlatList>(null);
   const [input, setInput] = useState('');
+  const [enviando, setEnviando] = useState(false);
 
   const [mensagens, setMensagens] = useState<Mensagem[]>([
     {
@@ -26,23 +28,58 @@ export default function ChatbotIA() {
   ]);
 
   const handleEnviar = async () => {
-    if (!input.trim()) return;
+    if (!input.trim() || enviando) return;
 
+    const mensagemDigitada = input.trim();
     const horarioAtual = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 
     const novaMensagemUsuario: Mensagem = {
       id: Math.random().toString(),
-      texto: input.trim(),
+      texto: mensagemDigitada,
       remetente: 'USUARIO',
       horario: horarioAtual
     };
 
-    // Adiciona a mensagem do usuário na tela
+    // Renderiza a mensagem do usuário na tela
     setMensagens(prev => [...prev, novaMensagemUsuario]);
     setInput('');
+    setEnviando(true);
 
     // Rola a lista para o fim
     setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
+
+    try {
+      const response = await api.post('/vector-store/chat', {
+        message: mensagemDigitada
+      });
+
+      const textoRespostaIA = response.data.response ?? response.data.message ?? "Desculpe, meu centro de comando falhou em responder.";
+
+      const novaMensagemIA: Mensagem = {
+        id: Math.random().toString(),
+        texto: textoRespostaIA,
+        remetente: 'IA',
+        horario: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+      };
+
+      // Renderiza a resposta na tela
+      setMensagens(prev => [...prev, novaMensagemIA]);
+
+    } catch (error: any) {
+      console.error("Erro na comunicação com o OrbitBot:", error.response?.data || error.message);
+
+      const erroMensagemIA: Mensagem = {
+        id: Math.random().toString(),
+        texto: "Transmissão interrompida. Não consegui me conectar com a base de dados em órbita.",
+        remetente: 'IA',
+        horario: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+      };
+
+      setMensagens(prev => [...prev, erroMensagemIA]);
+    } finally {
+      setEnviando(false);
+      setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
+    }
   };
 
   return (
@@ -84,18 +121,36 @@ export default function ChatbotIA() {
               </View>
             );
           }}
+          ListFooterComponent={() => (
+            enviando ? (
+              <View style={[styles.messageRow, styles.rowIA]}>
+                <View style={styles.avatarBot}>
+                  <Ionicons name="planet" size={16} color={Colors.background} />
+                </View>
+                <View style={[styles.bubble, styles.bubbleIA, styles.loadingBubble]}>
+                  <ActivityIndicator size="small" color={Colors.primary} />
+                </View>
+              </View>
+            ) : null
+          )}
         />
 
         <View style={styles.inputArea}>
           <TextInput
             style={styles.textInput}
-            placeholder="Digite sua dúvida espacial..."
+            placeholder={enviando ? "OrbitBot pensando..." : "Digite sua dúvida espacial..."}
             placeholderTextColor={Colors.textMuted}
             value={input}
             onChangeText={setInput}
             onSubmitEditing={handleEnviar}
+            editable={!enviando}
           />
-          <TouchableOpacity style={styles.sendButton} onPress={handleEnviar} activeOpacity={0.8}>
+          <TouchableOpacity
+            style={[styles.sendButton, enviando && styles.sendButtonDisabled]}
+            onPress={handleEnviar}
+            activeOpacity={0.8}
+            disabled={enviando}
+          >
             <Ionicons name="send" size={18} color={Colors.background} />
           </TouchableOpacity>
         </View>
@@ -179,6 +234,12 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.primary,
     borderBottomRightRadius: 4,
   },
+  loadingBubble: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    height: 40
+  },
   messageText: {
     color: Colors.text,
     fontSize: 15,
@@ -218,4 +279,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginLeft: 10,
   },
+  sendButtonDisabled: {
+    opacity: 0.5
+  }
 });
