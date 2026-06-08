@@ -19,10 +19,21 @@ export default function PagamentoTour() {
     async function carregarTour() {
       try {
         const response = await api.get('/tours');
-        const tourEncontrado = response.data.find((t: Tour) => t.id === Number(id));
-        setTour(tourEncontrado || null);
+        const item = response.data.find((t: any) => t.id === Number(id));
+
+        if (item) {
+          setTour({
+            id: item.id,
+            nome: item.name ?? "Tour Espacial",
+            destino: item.destination ?? "Espaço",
+            descricao: item.description ?? "",
+            preco: Number(item.price ?? 0),
+          });
+        } else {
+          setTour(null);
+        }
       } catch (error) {
-        console.error(error);
+        console.error("Erro ao carregar tour para pagamento:", error);
       } finally {
         setLoading(false);
       }
@@ -31,18 +42,17 @@ export default function PagamentoTour() {
   }, [id]);
 
   const handleConfirmarPagamento = async () => {
+    if (!tour) return;
     setPagando(true);
     try {
-      // Simulação da requisição que irá para o backend .NET no futuro
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
       Alert.alert(
         'Sucesso!',
         'Reserva confirmada! Seu bilhete espacial foi gerado com sucesso.',
         [{ text: 'Ver Ingressos', onPress: () => router.replace('/(app)/(tabs)/reservas' as any) }]
       );
     } catch (error) {
-      Alert.alert('Erro', 'Não foi possível processar o pagamento.');
+      console.error("Erro ao processar reserva:", error);
+      Alert.alert('Erro', 'Não foi possível processar o pagamento da reserva.');
     } finally {
       setPagando(false);
     }
@@ -75,6 +85,7 @@ export default function PagamentoTour() {
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={Colors.background} />
 
+      {/* Header */}
       <View style={styles.navHeader}>
         <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
           <Ionicons name="arrow-back" size={24} color={Colors.text} />
@@ -84,6 +95,7 @@ export default function PagamentoTour() {
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+        {/* Resumo */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Resumo do Destino</Text>
           <View style={styles.resumoCard}>
@@ -91,15 +103,13 @@ export default function PagamentoTour() {
             <Text style={styles.tourDestino}>{tour.destino}</Text>
             <View style={styles.divider} />
             <View style={styles.row}>
-              <Text style={styles.label}>Duração da Estadia</Text>
-            </View>
-            <View style={styles.row}>
-              <Text style={styles.label}>Assento Reservado</Text>
-              <Text style={styles.value}>Classe Orbital 01</Text>
+              <Text style={styles.label}>Assento Selecionado</Text>
+              <Text style={styles.value}>Classe Orbital Única</Text>
             </View>
           </View>
         </View>
 
+        {/* Formas de Pagamento */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Forma de Pagamento</Text>
 
@@ -111,7 +121,7 @@ export default function PagamentoTour() {
             <Ionicons name="card" size={24} color={metodo === 'CREDITO' ? Colors.primary : Colors.textMuted} />
             <View style={styles.metodoTextContainer}>
               <Text style={styles.metodoTitle}>Cartão de Crédito</Text>
-              <Text style={styles.metodoSubtitle}>Em até 12x sem juros espaciais</Text>
+              <Text style={styles.metodoSubtitle}>Pagamento direto via operadora</Text>
             </View>
             <Ionicons
               name={metodo === 'CREDITO' ? "radio-button-on" : "radio-button-off"}
@@ -128,7 +138,7 @@ export default function PagamentoTour() {
             <Ionicons name="qr-code" size={24} color={metodo === 'PIX' ? Colors.primary : Colors.textMuted} />
             <View style={styles.metodoTextContainer}>
               <Text style={styles.metodoTitle}>Pix Interplanetário</Text>
-              <Text style={styles.metodoSubtitle}>Confirmação imediata e 5% de desconto</Text>
+              <Text style={styles.metodoSubtitle}>Confirmação imediata no sistema</Text>
             </View>
             <Ionicons
               name={metodo === 'PIX' ? "radio-button-on" : "radio-button-off"}
@@ -141,19 +151,13 @@ export default function PagamentoTour() {
         <View style={styles.section}>
           <View style={styles.totalContainer}>
             <View style={styles.row}>
-              <Text style={styles.totalLabel}>Subtotal</Text>
+              <Text style={styles.totalLabel}>Valor do Assento</Text>
               <Text style={styles.totalValue}>{formatarPreco(tour.preco)}</Text>
-            </View>
-            <View style={styles.row}>
-              <Text style={styles.totalLabel}>Taxas de Embarque</Text>
-              <Text style={styles.totalValue}>{formatarPreco(metodo === 'PIX' ? 0 : 1500)}</Text>
             </View>
             <View style={styles.divider} />
             <View style={styles.row}>
               <Text style={styles.finalLabel}>Total Geral</Text>
-              <Text style={styles.finalValue}>
-                {formatarPreco(metodo === 'PIX' ? tour.preco * 0.95 : tour.preco + 1500)}
-              </Text>
+              <Text style={styles.finalValue}>{formatarPreco(tour.preco)}</Text>
             </View>
           </View>
         </View>
@@ -161,7 +165,7 @@ export default function PagamentoTour() {
 
       <View style={styles.footer}>
         <BotaoCustomizado
-          title={pagando ? "Processando Autorização..." : "Confirmar e Decolar"}
+          title={pagando ? "Efetuando Lançamento..." : "Confirmar Reserva"}
           loading={pagando}
           onPress={handleConfirmarPagamento}
         />
