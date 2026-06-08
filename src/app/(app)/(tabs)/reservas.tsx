@@ -1,95 +1,138 @@
-import { Colors } from '@/constants/Colors';
-import api from '@/services/api';
-import { TicketBackend } from '@/types/ticket';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from 'expo-router';
 import React, { useCallback, useState } from 'react';
-import { ActivityIndicator, FlatList, StatusBar, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, FlatList, StatusBar, StyleSheet, Text, View } from 'react-native';
 
+import CardReserva from '@/components/tours/CardReserva';
+import ModalAlterarData from '@/components/tours/ModalAlterarData';
+import { Colors } from '@/constants/Colors';
+import api from '@/services/api';
+import { TicketBackend } from '@/types/ticket';
 
 export default function Reservas() {
   const [reservas, setReservas] = useState<TicketBackend[]>([]);
   const [loading, setLoading] = useState(true);
+  const [todasDatas, setTodasDatas] = useState<any[]>([]);
+
+  const [modalVisivel, setModalVisivel] = useState(false);
+  const [ticketSendoAlterado, setTicketSendoAlterado] = useState<number | null>(null);
+  const [datasFiltradasModal, setDatasFiltradasModal] = useState<any[]>([]);
+
+  const carregarDadosCompletos = async () => {
+    try {
+      const [resTickets, resTourDates, resTours] = await Promise.all([
+        api.get('/tickets').catch(() => ({ data: [] })),
+        api.get('/tour-dates').catch(() => ({ data: [] })),
+        api.get('/tours').catch(() => ({ data: [] }))
+      ]);
+
+      const ticketsRaw = resTickets.data;
+      const tourDates = resTourDates.data;
+      const tours = resTours.data;
+
+      setTodasDatas(tourDates);
+
+      const rotasAgendadas = ticketsRaw.map((ticket: any) => {
+        const dataRelacionada = tourDates.find((d: any) => d.id === ticket.tourDateId);
+        const idTourRelacionado = dataRelacionada?.tourId ?? dataRelacionada?.tour?.id;
+        const tourRelacionado = idTourRelacionado ? tours.find((t: any) => t.id === idTourRelacionado) : null;
+
+        let dataFormatada = "A definir";
+        if (dataRelacionada?.departureDate) {
+          const dataObjeto = new Date(dataRelacionada.departureDate);
+          dataFormatada = !isNaN(dataObjeto.getTime()) ? dataObjeto.toLocaleDateString('pt-BR') : dataRelacionada.departureDate;
+        }
+
+        return {
+          id: ticket.id,
+          userId: ticket.userId,
+          tourDateId: ticket.tourDateId,
+          status: ticket.status ?? "CONFIRMED",
+          bookingDate: ticket.bookingDate,
+          price: Number(ticket.price ?? 0),
+          tourName: tourRelacionado?.name ?? "Missão Orbital",
+          destino: tourRelacionado?.destination ?? "Espaço Profundo",
+          dataPartida: dataFormatada,
+          tourId: idTourRelacionado
+        };
+      });
+
+      setReservas(rotasAgendadas);
+    } catch (error) {
+      console.log("[Reservas] Erro ao carregar reservas:", error);
+      setReservas([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useFocusEffect(
     useCallback(() => {
-      async function carregarDadosCompletos() {
-        setLoading(true);
-
-        try {
-          const [resTickets, resTourDates, resTours] = await Promise.all([
-            api.get('/tickets').catch(() => ({ data: [] })),
-            api.get('/tour-dates').catch(() => ({ data: [] })),
-            api.get('/tours').catch(() => ({ data: [] }))
-          ]);
-
-          const ticketsRaw = resTickets.data;
-          const tourDates = resTourDates.data;
-          const tours = resTours.data;
-
-          const rotasAgendadas = ticketsRaw.map((ticket: any) => {
-            const dataRelacionada = tourDates.find((d: any) => d.id === ticket.tourDateId);
-
-            const idTourRelacionado = dataRelacionada?.tourId ?? dataRelacionada?.tour?.id;
-
-            const tourRelacionado = idTourRelacionado
-              ? tours.find((t: any) => t.id === idTourRelacionado)
-              : null;
-
-            let dataFormatada = "A definir";
-
-            if (dataRelacionada?.departureDate) {
-              const dataObjeto = new Date(dataRelacionada.departureDate);
-
-              if (!isNaN(dataObjeto.getTime())) {
-                dataFormatada = dataObjeto.toLocaleDateString('pt-BR');
-              } else {
-                dataFormatada = dataRelacionada.departureDate;
-              }
-            }
-
-            return {
-              id: ticket.id,
-              userId: ticket.userId,
-              tourDateId: ticket.tourDateId,
-              status: ticket.status ?? "CONFIRMED",
-              bookingDate: ticket.bookingDate,
-              price: Number(ticket.price ?? 0),
-              tourName: tourRelacionado?.name ?? "Tour Orbital",
-              destino: tourRelacionado?.destination ?? "Espaço Profundo",
-              dataPartida: dataFormatada
-            };
-          });
-
-          setReservas(rotasAgendadas);
-        } catch (error) {
-          console.log("[Reservas] Erro ao carregar reservas:", error);
-          setReservas([]);
-        } finally {
-          setLoading(false);
-        }
-      }
-
+      setLoading(true);
       carregarDadosCompletos();
     }, [])
   );
 
-  const formatarPreco = (valor: number) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-    }).format(valor);
+  const handleCancelarReserva = (ticketId: number) => {
+    Alert.alert(
+      'Cancelar Missão',
+      'Tem certeza que deseja cancelar o seu bilhete de embarque interplanetário?',
+      [
+        { text: 'Manter Viagem', style: 'cancel' },
+        {
+          text: 'Confirmar Cancelamento',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              setLoading(true);
+              await api.delete(`/tickets/${ticketId}`);
+              Alert.alert('Sucesso', 'Sua reserva foi cancelada com sucesso.');
+              carregarDadosCompletos();
+            } catch (error) {
+              Alert.alert('Erro', 'Não foi possível cancelar sua reserva no servidor.');
+              setLoading(false);
+            }
+          }
+        }
+      ]
+    );
   };
 
-  const obterEstiloStatus = (status: string) => {
-    const s = status.toUpperCase();
-    if (s === 'PENDING' || s === 'PENDENTE') {
-      return { bg: 'rgba(255, 149, 0, 0.1)', texto: '#FF9500', label: 'PENDENTE' };
+  const handleAbrirModalDatas = (ticketId: number, tourId: number, atualTourDateId: number) => {
+    const alternativas = todasDatas.filter((d: any) => {
+      const idDoTour = d.tourId ?? d.tour?.id;
+      const totalSpots = d.totalSpots ?? 10;
+      const bookedSpots = d.bookedSpots ?? 0;
+      const vagasLivres = d.availableSpots ?? (totalSpots - bookedSpots);
+
+      return idDoTour === tourId && d.id !== atualTourDateId && vagasLivres > 0;
+    });
+
+    if (alternativas.length === 0) {
+      Alert.alert('Indisponível', 'Não existem outras janelas de lançamento com assentos livres para este destino no momento.');
+      return;
     }
-    if (s === 'CANCELLED' || s === 'CANCELADO') {
-      return { bg: 'rgba(255, 59, 48, 0.1)', texto: '#FF3B30', label: 'CANCELADO' };
+
+    setTicketSendoAlterado(ticketId);
+    setDatasFiltradasModal(alternativas);
+    setModalVisivel(true);
+  };
+
+  const handleConfirmarAlteracaoData = async (novaTourDateId: number) => {
+    if (!ticketSendoAlterado) return;
+    setModalVisivel(false);
+    setLoading(true);
+
+    try {
+      await api.put(`/tickets/${ticketSendoAlterado}`, { tourDateId: novaTourDateId });
+      Alert.alert('Sucesso', 'A data da sua viagem foi alterada com sucesso!');
+      carregarDadosCompletos();
+    } catch (error) {
+      Alert.alert('Erro', 'Falha ao atualizar a data no sistema do backend.');
+      setLoading(false);
+    } finally {
+      setTicketSendoAlterado(null);
     }
-    return { bg: 'rgba(52, 199, 89, 0.1)', texto: '#34C759', label: 'CONFIRMADO' };
   };
 
   if (loading) {
@@ -120,49 +163,20 @@ export default function Reservas() {
             <Text style={styles.emptyText}>Nenhuma viagem agendada ainda.</Text>
           </View>
         }
-        renderItem={({ item }) => {
-          const estiloStatus = obterEstiloStatus(item.status);
+        renderItem={({ item }) => (
+          <CardReserva
+            item={item}
+            onAlterarData={() => handleAbrirModalDatas(item.id, (item as any).tourId, item.tourDateId)}
+            onCancelarReserva={() => handleCancelarReserva(item.id)}
+          />
+        )}
+      />
 
-          return (
-            <View style={styles.ticketCard}>
-              <View style={styles.ticketHeader}>
-                <View style={{ flex: 1, paddingRight: 10 }}>
-                  <Text style={styles.tourName} numberOfLines={1}>{item.tourName}</Text>
-                  <Text style={styles.destinoName}>{item.destino}</Text>
-                </View>
-                <View style={[styles.statusBadge, { backgroundColor: estiloStatus.bg }]}>
-                  <Text style={[styles.statusText, { color: estiloStatus.texto }]}>{estiloStatus.label}</Text>
-                </View>
-              </View>
-
-              <View style={styles.ticketDivider} />
-
-              <View style={styles.ticketBody}>
-                <View style={styles.row}>
-                  <View style={styles.infoBlock}>
-                    <Text style={styles.infoLabel}>DATA DE PARTIDA</Text>
-                    <Text style={styles.infoValue}>{item.dataPartida}</Text>
-                  </View>
-                  <View style={[styles.infoBlock, { alignItems: 'flex-end' }]}>
-                    <Text style={styles.infoLabel}>ASSENTO</Text>
-                    <Text style={styles.infoValue}>01A</Text>
-                  </View>
-                </View>
-
-                <View style={[styles.row, { marginTop: 15 }]}>
-                  <View style={styles.infoBlock}>
-                    <Text style={styles.infoLabel}>VALOR PAGO</Text>
-                    <Text style={styles.infoValue}>{formatarPreco(item.price)}</Text>
-                  </View>
-                  <View style={[styles.infoBlock, { alignItems: 'flex-end' }]}>
-                    <Text style={styles.infoLabel}>CÓDIGO DE RESERVA</Text>
-                    <Text style={[styles.infoValue, styles.codeValue]}>ORBIT-{item.id}X26</Text>
-                  </View>
-                </View>
-              </View>
-            </View>
-          );
-        }}
+      <ModalAlterarData
+        visivel={modalVisivel}
+        onClose={() => setModalVisivel(false)}
+        datas={datasFiltradasModal}
+        onSelecionarData={handleConfirmarAlteracaoData}
       />
     </View>
   );
@@ -171,112 +185,42 @@ export default function Reservas() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: Colors.background
   },
   centerContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: Colors.background,
+    backgroundColor: Colors.background
   },
   header: {
     paddingHorizontal: 20,
     paddingTop: 10,
-    paddingBottom: 20,
+    paddingBottom: 20
   },
   title: {
     color: Colors.text,
     fontSize: 28,
-    fontWeight: 'bold',
+    fontWeight: 'bold'
   },
   subtitle: {
     color: Colors.textMuted,
     fontSize: 14,
-    marginTop: 4,
+    marginTop: 4
   },
   listContent: {
     paddingHorizontal: 20,
-    paddingBottom: 20,
+    paddingBottom: 20
   },
   emptyContainer: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingTop: 80,
+    paddingTop: 80
   },
   emptyText: {
     color: Colors.textMuted,
     fontSize: 16,
-    marginTop: 12,
-  },
-  ticketCard: {
-    backgroundColor: Colors.surface,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    overflow: 'hidden',
-    marginBottom: 20,
-  },
-  ticketHeader: {
-    padding: 20,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-  },
-  tourName: {
-    color: Colors.text,
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  destinoName: {
-    color: Colors.primary,
-    fontSize: 13,
-    marginTop: 2,
-  },
-  statusBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  statusText: {
-    fontSize: 11,
-    fontWeight: 'bold',
-  },
-  ticketDivider: {
-    height: 1,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.05)',
-    borderStyle: 'dashed',
-    marginHorizontal: 10,
-  },
-  stubLine: {
-    height: 1,
-  },
-  ticketBody: {
-    padding: 20,
-  },
-  row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  infoBlock: {
-    flex: 1,
-  },
-  infoLabel: {
-    color: Colors.textMuted,
-    fontSize: 10,
-    fontWeight: '600',
-    letterSpacing: 0.5,
-    marginBottom: 4,
-  },
-  infoValue: {
-    color: Colors.text,
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  codeValue: {
-    color: Colors.primary,
-    fontWeight: 'bold',
-    fontFamily: 'monospace',
-  },
+    marginTop: 12
+  }
 });
