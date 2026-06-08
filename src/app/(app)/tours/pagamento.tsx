@@ -45,14 +45,21 @@ export default function PagamentoTour() {
     if (!tour) return;
     setPagando(true);
     try {
+      await api.post('/tickets/purchase', {
+        tourDateId: Number(id),
+        paymentType: metodo === 'CREDITO' ? 'CREDIT_CARD' : 'PIX'
+      });
+
       Alert.alert(
         'Sucesso!',
         'Reserva confirmada! Seu bilhete espacial foi gerado com sucesso.',
         [{ text: 'Ver Ingressos', onPress: () => router.replace('/(app)/(tabs)/reservas' as any) }]
       );
-    } catch (error) {
-      console.error("Erro ao processar reserva:", error);
-      Alert.alert('Erro', 'Não foi possível processar o pagamento da reserva.');
+    } catch (error: any) {
+      console.error("Erro ao processar reserva:", error.response?.data || error.message);
+
+      const mensagemErro = error.response?.data?.message || 'Não foi possível processar a compra do seu bilhete espacial.';
+      Alert.alert('Falha na Operação', mensagemErro);
     } finally {
       setPagando(false);
     }
