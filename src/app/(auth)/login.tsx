@@ -29,7 +29,13 @@ export default function Login() {
     try {
       await login(email, senha);
     } catch (error: any) {
+      const status = error.response?.status;
       const apiError = error.response?.data;
+
+      if (status === 401) {
+        Alert.alert('Erro no Login', 'E-mail ou senha incorretos.');
+        return;
+      }
 
       if (apiError && apiError.details && Array.isArray(apiError.details)) {
         apiError.details.forEach((detalhe: string) => {
@@ -40,9 +46,10 @@ export default function Login() {
             setErroSenha(detalhe);
           }
         });
-      } else {
-        const mensagemErro = apiError?.message || 'E-mail ou senha incorretos.';
-        Alert.alert('Erro no Login', mensagemErro);
+      }
+      else {
+        const mensagemErro = apiError?.message || apiError || 'E-mail ou senha incorretos.';
+        Alert.alert('Erro no Login', typeof mensagemErro === 'string' ? mensagemErro : 'E-mail ou senha incorretos.');
       }
     } finally {
       setLoading(false);

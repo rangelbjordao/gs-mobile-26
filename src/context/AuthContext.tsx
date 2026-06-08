@@ -7,8 +7,8 @@ import { Alert } from 'react-native';
 interface AuthContextType {
   token: string | null;
   isLoading: boolean;
-  login: (email: string, senha: string) => Promise<void>;
-  cadastrar: (name: string, email: string, password: string, phone?: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<void>;
+  cadastrar: (name: string, email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -63,18 +63,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const cadastrar = async (name: string, email: string, password: string, phone?: string) => {
+  const cadastrar = async (name: string, email: string, password: string) => {
     try {
       await api.post('/users', {
         name,
         email,
         password,
-        role: "DEFAULT_USER",
-        phone: phone || null
+        role: "DEFAULT_USER"
       });
     } catch (e: any) {
       console.warn(`[Cadastro] Falha na requisição: Status ${e.response?.status}`);
-
       throw e;
     }
   };
