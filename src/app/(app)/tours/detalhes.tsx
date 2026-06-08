@@ -5,32 +5,50 @@ import { Tour } from '@/types/tour';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+
+interface DataDisponivel {
+  id: number;
+  tourId: number;
+  departureDate: string;
+  availableSpots: number;
+}
 
 export default function DetalhesTour() {
   const router = useRouter();
   const { id } = useLocalSearchParams();
   const [tour, setTour] = useState<Tour | null>(null);
+  const [dates, setDates] = useState<DataDisponivel[]>([]);
+  const [selectedDateId, setSelectedDateId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function carregarDetalhes() {
       try {
-        const response = await api.get('/tours');
-
-        const item = response.data.find((t: any) => t.id === Number(id));
+        const responseTours = await api.get('/tours');
+        const item = responseTours.data.find((t: any) => t.id === Number(id));
 
         if (item) {
-          const tourFormatado: Tour = {
+          setTour({
             id: item.id,
             nome: item.name ?? "Tour Espacial",
             destino: item.destination ?? "Espaço",
             descricao: item.description ?? "",
             preco: Number(item.price ?? 0),
-          };
-          setTour(tourFormatado);
-        } else {
-          setTour(null);
+          });
+
+          const responseDates = await api.get('/tour-dates');
+
+          const datasFiltradas = responseDates.data
+            .filter((d: any) => d.tourId === item.id)
+            .map((d: any) => ({
+              id: d.id,
+              tourId: d.tourId,
+              departureDate: d.departureDate ?? "A definir",
+              availableSpots: (d.totalSpots ?? 0) - (d.bookedSpots ?? 0)
+            }));
+
+          setDates(datasFiltradas);
         }
       } catch (error) {
         console.error("Erro ao carregar detalhes do tour:", error);
@@ -43,9 +61,14 @@ export default function DetalhesTour() {
 
   const handleIrParaPagamento = () => {
     if (!tour) return;
+    if (!selectedDateId) {
+      Alert.alert('Seleção Obrigatória', 'Por favor, selecione uma data disponível para a sua partida interplanetária.');
+      return;
+    }
+
     router.push({
       pathname: '/(app)/tours/pagamento',
-      params: { id: tour.id }
+      params: { id: selectedDateId }
     } as any);
   };
 
@@ -73,7 +96,7 @@ export default function DetalhesTour() {
   }
 
   return (
-    <View style={styles.container} >
+    <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={Colors.background} />
 
       <View style={styles.navHeader}>
@@ -95,12 +118,40 @@ export default function DetalhesTour() {
 
           <Text style={styles.sectionTitle}>Sobre a Missão</Text>
           <Text style={styles.description}>{tour.descricao}</Text>
+
+          <Text style={[styles.sectionTitle, { marginTop: 30 }]}>Janelas de Partida Disponíveis</Text>
+          {dates.length === 0 ? (
+            <Text style={styles.noDatesText}>Nenhuma janela de lançamento agendada para este destino no momento.</Text>
+          ) : (
+            dates.map((item) => (
+              <TouchableOpacity
+                key={item.id}
+                style={[
+                  styles.dateCard,
+                  selectedDateId === item.id && styles.dateCardSelected,
+                  item.availableSpots === 0 && styles.dateCardDisabled
+                ]}
+                disabled={item.availableSpots === 0}
+                onPress={() => setSelectedDateId(item.id)}
+              >
+                <View>
+                  <Text style={styles.dateText}>{item.departureDate}</Text>
+                  <Text style={styles.spotsText}>Vagas restantes: {item.availableSpots} assentos</Text>
+                </View>
+                <Ionicons
+                  name={selectedDateId === item.id ? "checkbox" : "square-outline"}
+                  size={22}
+                  color={selectedDateId === item.id ? Colors.primary : Colors.textMuted}
+                />
+              </TouchableOpacity>
+            ))
+          )}
         </View>
       </ScrollView>
 
       <View style={styles.footer}>
         <View style={styles.priceContainer}>
-          <Text style={styles.priceLabel}>Investimento por assento</Text>
+          <Text style={styles.priceLabel}>Investimento total</Text>
           <Text style={styles.priceValue}>{formatarPreco(tour.preco)}</Text>
         </View>
         <BotaoCustomizado
@@ -214,5 +265,39 @@ const styles = StyleSheet.create({
     marginTop: 0,
     marginLeft: 15,
     backgroundColor: Colors.primary,
+  },
+  noDatesText: {
+    color: Colors.textMuted,
+    fontSize: 14,
+    fontStyle: 'italic',
+    marginTop: 5
+  },
+  dateCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: Colors.surface,
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: Colors.border
+  },
+  dateCardSelected: {
+    borderColor: Colors.primary,
+    backgroundColor: 'rgba(76, 201, 240, 0.02)'
+  },
+  dateCardDisabled: {
+    opacity: 0.4
+  },
+  dateText: {
+    color: Colors.text,
+    fontSize: 15,
+    fontWeight: '600'
+  },
+  spotsText: {
+    color: Colors.primary,
+    fontSize: 12,
+    marginTop: 4
   },
 });
