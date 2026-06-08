@@ -2,7 +2,8 @@ import { Colors } from '@/constants/Colors';
 import api from '@/services/api';
 import { TicketBackend } from '@/types/ticket';
 import { Ionicons } from '@expo/vector-icons';
-import React, { useEffect, useState } from 'react';
+import { useFocusEffect } from 'expo-router';
+import React, { useCallback, useState } from 'react';
 import { ActivityIndicator, FlatList, StatusBar, StyleSheet, Text, View } from 'react-native';
 
 
@@ -10,58 +11,68 @@ export default function Reservas() {
   const [reservas, setReservas] = useState<TicketBackend[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    async function carregarDadosCompletos() {
-      try {
-        const [resTickets, resTourDates, resTours] = await Promise.all([
-          api.get('/tickets').catch(() => ({ data: [] })),
-          api.get('/tour-dates').catch(() => ({ data: [] })),
-          api.get('/tours').catch(() => ({ data: [] }))
-        ]);
+  useFocusEffect(
+    useCallback(() => {
+      async function carregarDadosCompletos() {
+        setLoading(true);
 
-        const ticketsRaw = resTickets.data;
-        const tourDates = resTourDates.data;
-        const tours = resTours.data;
+        try {
+          const [resTickets, resTourDates, resTours] = await Promise.all([
+            api.get('/tickets').catch(() => ({ data: [] })),
+            api.get('/tour-dates').catch(() => ({ data: [] })),
+            api.get('/tours').catch(() => ({ data: [] }))
+          ]);
 
+          const ticketsRaw = resTickets.data;
+          const tourDates = resTourDates.data;
+          const tours = resTours.data;
 
-        const rotasAgendadas = ticketsRaw.map((ticket: any) => {
+          const rotasAgendadas = ticketsRaw.map((ticket: any) => {
+            const dataRelacionada = tourDates.find((d: any) => d.id === ticket.tourDateId);
 
-          const dataRelacionada = tourDates.find((d: any) => d.id === ticket.tourDateId);
+            const idTourRelacionado = dataRelacionada?.tourId ?? dataRelacionada?.tour?.id;
 
-          const tourRelacionado = dataRelacionada
-            ? tours.find((t: any) => t.id === (dataRelacionada.tourId ?? dataRelacionada.tour?.id))
-            : null;
+            const tourRelacionado = idTourRelacionado
+              ? tours.find((t: any) => t.id === idTourRelacionado)
+              : null;
 
-          let dataFormatada = "A definir";
-          if (dataRelacionada?.departureDate) {
-            const dataObjeto = new Date(dataRelacionada.departureDate);
-            dataFormatada = dataObjeto.toLocaleDateString('pt-BR');
-          }
+            let dataFormatada = "A definir";
 
-          return {
-            id: ticket.id,
-            userId: ticket.userId,
-            tourDateId: ticket.tourDateId,
-            status: ticket.status ?? "CONFIRMED",
-            bookingDate: ticket.bookingDate,
-            price: Number(ticket.price ?? 0),
-            tourName: tourRelacionado?.name ?? "Missão Orbital",
-            destino: tourRelacionado?.destination ?? "Espaço Profundo",
-            dataPartida: dataFormatada
-          };
-        });
+            if (dataRelacionada?.departureDate) {
+              const dataObjeto = new Date(dataRelacionada.departureDate);
 
-        setReservas(rotasAgendadas);
-      } catch (error) {
-        console.log("[Reservas] Aguardando implementação da rota GET /tickets no Java.");
-        setReservas([]);
-      } finally {
-        setLoading(false);
+              if (!isNaN(dataObjeto.getTime())) {
+                dataFormatada = dataObjeto.toLocaleDateString('pt-BR');
+              } else {
+                dataFormatada = dataRelacionada.departureDate;
+              }
+            }
+
+            return {
+              id: ticket.id,
+              userId: ticket.userId,
+              tourDateId: ticket.tourDateId,
+              status: ticket.status ?? "CONFIRMED",
+              bookingDate: ticket.bookingDate,
+              price: Number(ticket.price ?? 0),
+              tourName: tourRelacionado?.name ?? "Tour Orbital",
+              destino: tourRelacionado?.destination ?? "Espaço Profundo",
+              dataPartida: dataFormatada
+            };
+          });
+
+          setReservas(rotasAgendadas);
+        } catch (error) {
+          console.log("[Reservas] Erro ao carregar reservas:", error);
+          setReservas([]);
+        } finally {
+          setLoading(false);
+        }
       }
-    }
 
-    carregarDadosCompletos();
-  }, []);
+      carregarDadosCompletos();
+    }, [])
+  );
 
   const formatarPreco = (valor: number) => {
     return new Intl.NumberFormat('pt-BR', {

@@ -9,8 +9,10 @@ import { ActivityIndicator, Alert, ScrollView, StatusBar, StyleSheet, Text, Touc
 
 export default function PagamentoTour() {
   const router = useRouter();
-  const { id } = useLocalSearchParams();
+  const { tourDateId, tourId } = useLocalSearchParams();
+
   const [tour, setTour] = useState<Tour | null>(null);
+  const [dataPartida, setDataPartida] = useState<string>("A definir");
   const [loading, setLoading] = useState(true);
   const [pagando, setPagando] = useState(false);
   const [metodo, setMetodo] = useState<'CREDITO' | 'PIX'>('CREDITO');
@@ -18,35 +20,60 @@ export default function PagamentoTour() {
   useEffect(() => {
     async function carregarTour() {
       try {
-        const response = await api.get('/tours');
-        const item = response.data.find((t: any) => t.id === Number(id));
+        const idTourDate = Number(tourDateId);
+        const idTour = Number(tourId);
 
-        if (item) {
+        if (!idTourDate || !idTour) {
+          setTour(null);
+          return;
+        }
+
+        const [responseTours, responseDates] = await Promise.all([
+          api.get('/tours'),
+          api.get('/tour-dates'),
+        ]);
+
+        const tourEncontrado = responseTours.data.find((t: any) => t.id === idTour);
+        const dataEncontrada = responseDates.data.find((d: any) => d.id === idTourDate);
+
+        if (dataEncontrada?.departureDate) {
+          const dataObjeto = new Date(dataEncontrada.departureDate);
+
+          if (!isNaN(dataObjeto.getTime())) {
+            setDataPartida(dataObjeto.toLocaleDateString('pt-BR'));
+          } else {
+            setDataPartida(dataEncontrada.departureDate);
+          }
+        }
+
+        if (tourEncontrado) {
           setTour({
-            id: item.id,
-            nome: item.name ?? "Tour Espacial",
-            destino: item.destination ?? "Espaço",
-            descricao: item.description ?? "",
-            preco: Number(item.price ?? 0),
+            id: tourEncontrado.id,
+            nome: tourEncontrado.name ?? "Tour Espacial",
+            destino: tourEncontrado.destination ?? "Espaço",
+            descricao: tourEncontrado.description ?? "",
+            preco: Number(tourEncontrado.price ?? 0),
           });
         } else {
           setTour(null);
         }
       } catch (error) {
         console.error("Erro ao carregar tour para pagamento:", error);
+        setTour(null);
       } finally {
         setLoading(false);
       }
     }
+
     carregarTour();
-  }, [id]);
+  }, [tourDateId, tourId]);
 
   const handleConfirmarPagamento = async () => {
     if (!tour) return;
     setPagando(true);
     try {
       await api.post('/tickets/purchase', {
-        tourDateId: Number(id),
+        tourDateId: Number(tourDateId),
         paymentType: metodo === 'CREDITO' ? 'CREDIT_CARD' : 'PIX'
       });
 
@@ -109,6 +136,11 @@ export default function PagamentoTour() {
             <Text style={styles.tourName}>{tour.nome}</Text>
             <Text style={styles.tourDestino}>{tour.destino}</Text>
             <View style={styles.divider} />
+
+            <View style={styles.row}>
+              <Text style={styles.label}>Data de Partida</Text>
+              <Text style={styles.value}>{dataPartida}</Text>
+            </View>
             <View style={styles.row}>
               <Text style={styles.label}>Assento Selecionado</Text>
               <Text style={styles.value}>Classe Orbital Única</Text>

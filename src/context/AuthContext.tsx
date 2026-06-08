@@ -31,11 +31,21 @@ function extrairUsuarioDoToken(jwtToken: string): User | null {
     const parteNome = emailLogin ? emailLogin.split('@')[0] : 'Recruta';
     const nomeFormatado = parteNome.charAt(0).toUpperCase() + parteNome.slice(1);
 
+    const authorities = payloadJson.authorities ?? [];
+
+    const ehAdmin = authorities.some((item: any) => {
+      if (typeof item === 'string') {
+        return item === 'ROLE_ADMIN' || item === 'ADMIN';
+      }
+
+      return item.authority === 'ROLE_ADMIN' || item.authority === 'ADMIN';
+    });
+
     return {
       id: payloadJson.id,
       name: payloadJson.name ?? nomeFormatado,
       email: emailLogin ?? 'astronauta@orbitpass.com',
-      role: payloadJson.role ?? (payloadJson.authorities?.includes('ROLE_ADMIN') ? 'ADMIN' : 'DEFAULT_USER')
+      role: payloadJson.role ?? (ehAdmin ? 'ADMIN' : 'DEFAULT_USER')
     };
   } catch (e) {
     console.error('Falha ao decodificar payload do JWT:', e);

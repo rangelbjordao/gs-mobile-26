@@ -20,7 +20,7 @@ export default function DetalhesTour() {
     async function carregarDetalhes() {
       try {
         const responseTours = await api.get('/tours');
-        const item = responseTours.data.find((t: any) => t.id === Number(id));
+        const item = responseTours.data.find((t: any) => Number(t.id) === Number(id));
 
         if (item) {
           setTour({
@@ -34,13 +34,22 @@ export default function DetalhesTour() {
           const responseDates = await api.get('/tour-dates');
 
           const datasFiltradas = responseDates.data
-            .filter((d: any) => d.tourId === item.id)
-            .map((d: any) => ({
-              id: d.id,
-              tourId: d.tourId,
-              departureDate: d.departureDate ?? "A definir",
-              availableSpots: (d.totalSpots ?? 0) - (d.bookedSpots ?? 0)
-            }));
+            .filter((d: any) => {
+              const idTourDaData = d.tourId ?? d.tour?.id;
+              return Number(idTourDaData) === Number(item.id);
+            })
+            .map((d: any) => {
+              const totalSpots = d.totalSpots ?? 0;
+              const bookedSpots = d.bookedSpots ?? 0;
+              const availableSpots = d.availableSpots ?? Math.max(totalSpots - bookedSpots, 0);
+
+              return {
+                id: Number(d.id),
+                tourId: Number(d.tourId ?? d.tour?.id),
+                departureDate: d.departureDate ?? "A definir",
+                availableSpots,
+              };
+            });
 
           setDates(datasFiltradas);
         }
@@ -62,7 +71,10 @@ export default function DetalhesTour() {
 
     router.push({
       pathname: '/(app)/tours/pagamento',
-      params: { id: selectedDateId }
+      params: {
+        tourDateId: String(selectedDateId),
+        tourId: String(tour.id),
+      },
     } as any);
   };
 
@@ -97,7 +109,7 @@ export default function DetalhesTour() {
         <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
           <Ionicons name="arrow-back" size={24} color={Colors.text} />
         </TouchableOpacity>
-        <Text style={styles.navTitle}>Detalhes da Missão</Text>
+        <Text style={styles.navTitle}>Detalhes do Tour</Text>
         <View style={{ width: 40 }} />
       </View>
 
@@ -110,12 +122,17 @@ export default function DetalhesTour() {
 
           <Text style={styles.title}>{tour.nome}</Text>
 
-          <Text style={styles.sectionTitle}>Sobre a Missão</Text>
+          <Text style={styles.sectionTitle}>Sobre o Tour</Text>
           <Text style={styles.description}>{tour.descricao}</Text>
 
-          <Text style={[styles.sectionTitle, { marginTop: 30 }]}>Janelas de Partida Disponíveis</Text>
+          <Text style={[styles.sectionTitle, { marginTop: 30 }]}>
+            Janelas de Partida Disponíveis
+          </Text>
+
           {dates.length === 0 ? (
-            <Text style={styles.noDatesText}>Nenhuma janela de lançamento agendada para este destino no momento.</Text>
+            <Text style={styles.noDatesText}>
+              Nenhuma janela de lançamento agendada para este destino no momento.
+            </Text>
           ) : (
             dates.map((item) => (
               <TouchableOpacity
@@ -126,14 +143,19 @@ export default function DetalhesTour() {
                   item.availableSpots === 0 && styles.dateCardDisabled
                 ]}
                 disabled={item.availableSpots === 0}
-                onPress={() => setSelectedDateId(item.id)}
+                onPress={() =>
+                  setSelectedDateId((atual) => (atual === item.id ? null : item.id))
+                }
               >
                 <View>
                   <Text style={styles.dateText}>{item.departureDate}</Text>
-                  <Text style={styles.spotsText}>Vagas restantes: {item.availableSpots} assentos</Text>
+                  <Text style={styles.spotsText}>
+                    Vagas restantes: {item.availableSpots} assentos
+                  </Text>
                 </View>
+
                 <Ionicons
-                  name={selectedDateId === item.id ? "checkbox" : "square-outline"}
+                  name={selectedDateId === item.id ? "radio-button-on" : "radio-button-off"}
                   size={22}
                   color={selectedDateId === item.id ? Colors.primary : Colors.textMuted}
                 />
