@@ -1,24 +1,67 @@
 import { Colors } from '@/constants/Colors';
-import { Ingresso } from '@/types/tour';
+import api from '@/services/api';
+import { TicketBackend } from '@/types/ticket';
 import { Ionicons } from '@expo/vector-icons';
-import React, { useState } from 'react';
-import { FlatList, StatusBar, StyleSheet, Text, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, FlatList, StatusBar, StyleSheet, Text, View } from 'react-native';
+
 
 export default function Reservas() {
-  const [reservas] = useState<Ingresso[]>([
-    {
-      id: 1,
-      id_usuario: 1,
-      id_data_tour: 101,
-      codigo_unico: "ORBIT-74X9-2026",
-      status: "CONFIRMADO",
-      data_compra: "27/05/2026",
-      valor_pago: 250000,
-      tourName: "Experiência Órbita Azul",
-      destino: "Órbita Terrestre Baixa",
-      dataPartida: "15/08/2026"
+  const [reservas, setReservas] = useState<TicketBackend[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function carregarDadosCompletos() {
+      try {
+        const [resTickets, resTourDates, resTours] = await Promise.all([
+          api.get('/tickets').catch(() => ({ data: [] })),
+          api.get('/tour-dates').catch(() => ({ data: [] })),
+          api.get('/tours').catch(() => ({ data: [] }))
+        ]);
+
+        const ticketsRaw = resTickets.data;
+        const tourDates = resTourDates.data;
+        const tours = resTours.data;
+
+
+        const rotasAgendadas = ticketsRaw.map((ticket: any) => {
+
+          const dataRelacionada = tourDates.find((d: any) => d.id === ticket.tourDateId);
+
+          const tourRelacionado = dataRelacionada
+            ? tours.find((t: any) => t.id === (dataRelacionada.tourId ?? dataRelacionada.tour?.id))
+            : null;
+
+          let dataFormatada = "A definir";
+          if (dataRelacionada?.departureDate) {
+            const dataObjeto = new Date(dataRelacionada.departureDate);
+            dataFormatada = dataObjeto.toLocaleDateString('pt-BR');
+          }
+
+          return {
+            id: ticket.id,
+            userId: ticket.userId,
+            tourDateId: ticket.tourDateId,
+            status: ticket.status ?? "CONFIRMED",
+            bookingDate: ticket.bookingDate,
+            price: Number(ticket.price ?? 0),
+            tourName: tourRelacionado?.name ?? "Missão Orbital",
+            destino: tourRelacionado?.destination ?? "Espaço Profundo",
+            dataPartida: dataFormatada
+          };
+        });
+
+        setReservas(rotasAgendadas);
+      } catch (error) {
+        console.log("[Reservas] Aguardando implementação da rota GET /tickets no Java.");
+        setReservas([]);
+      } finally {
+        setLoading(false);
+      }
     }
-  ]);
+
+    carregarDadosCompletos();
+  }, []);
 
   const formatarPreco = (valor: number) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -27,8 +70,27 @@ export default function Reservas() {
     }).format(valor);
   };
 
+  const obterEstiloStatus = (status: string) => {
+    const s = status.toUpperCase();
+    if (s === 'PENDING' || s === 'PENDENTE') {
+      return { bg: 'rgba(255, 149, 0, 0.1)', texto: '#FF9500', label: 'PENDENTE' };
+    }
+    if (s === 'CANCELLED' || s === 'CANCELADO') {
+      return { bg: 'rgba(255, 59, 48, 0.1)', texto: '#FF3B30', label: 'CANCELADO' };
+    }
+    return { bg: 'rgba(52, 199, 89, 0.1)', texto: '#34C759', label: 'CONFIRMADO' };
+  };
+
+  if (loading) {
+    return (
+      <View style={styles.centerContainer}>
+        <ActivityIndicator size="large" color={Colors.primary} />
+      </View>
+    );
+  }
+
   return (
-    <View style={styles.container} >
+    <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={Colors.background} />
 
       <View style={styles.header}>
@@ -43,51 +105,53 @@ export default function Reservas() {
         contentContainerStyle={styles.listContent}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Ionicons name="airplane-outline" size={48} color={Colors.textMuted} />
+            <Ionicons name="rocket-outline" size={48} color={Colors.textMuted} />
             <Text style={styles.emptyText}>Nenhuma viagem agendada ainda.</Text>
           </View>
         }
-        renderItem={({ item }) => (
-          <View style={styles.ticketCard}>
-            <View style={styles.ticketHeader}>
-              <View>
-                <Text style={styles.tourName}>{item.tourName}</Text>
-                <Text style={styles.destinoName}>{item.destino}</Text>
-              </View>
-              <View style={[styles.statusBadge, { backgroundColor: 'rgba(52, 199, 89, 0.1)' }]}>
-                <Text style={[styles.statusText, { color: '#34C759' }]}>{item.status}</Text>
-              </View>
-            </View>
+        renderItem={({ item }) => {
+          const estiloStatus = obterEstiloStatus(item.status);
 
-            <View style={styles.ticketDivider}>
-              <View style={styles.stubLine} />
-            </View>
-
-            <View style={styles.ticketBody}>
-              <View style={styles.row}>
-                <View style={styles.infoBlock}>
-                  <Text style={styles.infoLabel}>DATA DE PARTIDA</Text>
-                  <Text style={styles.infoValue}>{item.dataPartida}</Text>
+          return (
+            <View style={styles.ticketCard}>
+              <View style={styles.ticketHeader}>
+                <View style={{ flex: 1, paddingRight: 10 }}>
+                  <Text style={styles.tourName} numberOfLines={1}>{item.tourName}</Text>
+                  <Text style={styles.destinoName}>{item.destino}</Text>
                 </View>
-                <View style={[styles.infoBlock, { alignItems: 'flex-end' }]}>
-                  <Text style={styles.infoLabel}>ASSENTO</Text>
-                  <Text style={styles.infoValue}>01A</Text>
+                <View style={[styles.statusBadge, { backgroundColor: estiloStatus.bg }]}>
+                  <Text style={[styles.statusText, { color: estiloStatus.texto }]}>{estiloStatus.label}</Text>
                 </View>
               </View>
 
-              <View style={[styles.row, { marginTop: 15 }]}>
-                <View style={styles.infoBlock}>
-                  <Text style={styles.infoLabel}>VALOR PAGO</Text>
-                  <Text style={styles.infoValue}>{formatarPreco(item.valor_pago)}</Text>
+              <View style={styles.ticketDivider} />
+
+              <View style={styles.ticketBody}>
+                <View style={styles.row}>
+                  <View style={styles.infoBlock}>
+                    <Text style={styles.infoLabel}>DATA DE PARTIDA</Text>
+                    <Text style={styles.infoValue}>{item.dataPartida}</Text>
+                  </View>
+                  <View style={[styles.infoBlock, { alignItems: 'flex-end' }]}>
+                    <Text style={styles.infoLabel}>ASSENTO</Text>
+                    <Text style={styles.infoValue}>01A</Text>
+                  </View>
                 </View>
-                <View style={[styles.infoBlock, { alignItems: 'flex-end' }]}>
-                  <Text style={styles.infoLabel}>CÓDIGO DE EMBARQUE</Text>
-                  <Text style={[styles.infoValue, styles.codeValue]}>{item.codigo_unico}</Text>
+
+                <View style={[styles.row, { marginTop: 15 }]}>
+                  <View style={styles.infoBlock}>
+                    <Text style={styles.infoLabel}>VALOR PAGO</Text>
+                    <Text style={styles.infoValue}>{formatarPreco(item.price)}</Text>
+                  </View>
+                  <View style={[styles.infoBlock, { alignItems: 'flex-end' }]}>
+                    <Text style={styles.infoLabel}>CÓDIGO DE RESERVA</Text>
+                    <Text style={[styles.infoValue, styles.codeValue]}>ORBIT-{item.id}X26</Text>
+                  </View>
                 </View>
               </View>
             </View>
-          </View>
-        )}
+          );
+        }}
       />
     </View>
   );
@@ -96,6 +160,12 @@ export default function Reservas() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: Colors.background,
+  },
+  centerContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
     backgroundColor: Colors.background,
   },
   header: {
@@ -121,7 +191,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingTop: 40,
+    paddingTop: 80,
   },
   emptyText: {
     color: Colors.textMuted,
