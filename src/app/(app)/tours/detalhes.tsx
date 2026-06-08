@@ -5,7 +5,7 @@ import { Tour } from '@/types/tour';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Image, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function DetalhesTour() {
@@ -18,10 +18,23 @@ export default function DetalhesTour() {
     async function carregarDetalhes() {
       try {
         const response = await api.get('/tours');
-        const tourEncontrado = response.data.find((t: Tour) => t.id === Number(id));
-        setTour(tourEncontrado || null);
+
+        const item = response.data.find((t: any) => t.id === Number(id));
+
+        if (item) {
+          const tourFormatado: Tour = {
+            id: item.id,
+            nome: item.name ?? "Tour Espacial",
+            destino: item.destination ?? "Espaço",
+            descricao: item.description ?? "",
+            preco: Number(item.price ?? 0),
+          };
+          setTour(tourFormatado);
+        } else {
+          setTour(null);
+        }
       } catch (error) {
-        console.error(error);
+        console.error("Erro ao carregar detalhes do tour:", error);
       } finally {
         setLoading(false);
       }
@@ -55,7 +68,7 @@ export default function DetalhesTour() {
   if (!tour) {
     return (
       <View style={styles.centerContainer}>
-        <Text style={styles.errorText}>Destino não encontrado.</Text>
+        <Text style={styles.errorText}>Destino espacial não encontrado.</Text>
       </View>
     );
   }
@@ -73,10 +86,6 @@ export default function DetalhesTour() {
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-        {tour.imagem && (
-          <Image source={tour.imagem} style={styles.image} />
-        )}
-
         <View style={styles.content}>
           <View style={styles.badge}>
             <Ionicons name="planet" size={14} color={Colors.primary} />
@@ -84,20 +93,6 @@ export default function DetalhesTour() {
           </View>
 
           <Text style={styles.title}>{tour.nome}</Text>
-
-          <View style={styles.infoGrid}>
-            <View style={styles.infoCard}>
-              <Ionicons name="time" size={20} color={Colors.primary} />
-              <Text style={styles.infoLabel}>Duração</Text>
-              <Text style={styles.infoValue}>{tour.duracao_dias} dias</Text>
-            </View>
-
-            <View style={styles.infoCard}>
-              <Ionicons name="people" size={20} color={Colors.primary} />
-              <Text style={styles.infoLabel}>Capacidade</Text>
-              <Text style={styles.infoValue}>{tour.capacidade_maxima} tripulantes</Text>
-            </View>
-          </View>
 
           <Text style={styles.sectionTitle}>Sobre a Missão</Text>
           <Text style={styles.description}>{tour.descricao}</Text>
@@ -157,10 +152,6 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingBottom: 30,
   },
-  image: {
-    width: '100%',
-    height: 250,
-  },
   content: {
     padding: 20,
   },
@@ -172,7 +163,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 20,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   badgeText: {
     color: Colors.primary,
@@ -184,39 +175,13 @@ const styles = StyleSheet.create({
     color: Colors.text,
     fontSize: 26,
     fontWeight: 'bold',
-    marginBottom: 20,
-  },
-  infoGrid: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
     marginBottom: 25,
-    gap: 15,
-  },
-  infoCard: {
-    flex: 1,
-    backgroundColor: Colors.surface,
-    borderRadius: 12,
-    padding: 16,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  infoLabel: {
-    color: Colors.textMuted,
-    fontSize: 12,
-    marginTop: 8,
-    marginBottom: 2,
-  },
-  infoValue: {
-    color: Colors.text,
-    fontSize: 14,
-    fontWeight: 'bold',
   },
   sectionTitle: {
     color: Colors.text,
     fontSize: 18,
     fontWeight: 'bold',
-    marginBottom: 10,
+    marginBottom: 12,
   },
   description: {
     color: Colors.textMuted,
