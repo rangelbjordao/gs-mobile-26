@@ -33,7 +33,7 @@ export default function Reservas() {
       setTodasDatas(tourDates);
 
       const rotasAgendadas = ticketsRaw.map((ticket: any) => {
-        const dataRelacionada = tourDates.find((d: any) => d.id === ticket.tourDateId);
+        const dataRelacionada = tourDates.find((d: any) => Number(d.id) === Number(ticket.tourDateId));
         const idTourRelacionado = dataRelacionada?.tourId ?? dataRelacionada?.tour?.id;
         const tourRelacionado = idTourRelacionado ? tours.find((t: any) => t.id === idTourRelacionado) : null;
 
@@ -105,7 +105,7 @@ export default function Reservas() {
       const bookedSpots = d.bookedSpots ?? 0;
       const vagasLivres = d.availableSpots ?? (totalSpots - bookedSpots);
 
-      return idDoTour === tourId && d.id !== atualTourDateId && vagasLivres > 0;
+      return Number(idDoTour) === Number(tourId) && Number(d.id) !== Number(atualTourDateId) && vagasLivres > 0;
     });
 
     if (alternativas.length === 0) {
