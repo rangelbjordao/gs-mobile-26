@@ -1,18 +1,12 @@
 import BotaoCustomizado from '@/components/shared/BotaoCustomizado';
 import { Colors } from '@/constants/Colors';
 import api from '@/services/api';
+import { DataDisponivel } from '@/types/ticket';
 import { Tour } from '@/types/tour';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-
-interface DataDisponivel {
-  id: number;
-  tourId: number;
-  departureDate: string;
-  availableSpots: number;
-}
 
 export default function DetalhesTour() {
   const router = useRouter();
