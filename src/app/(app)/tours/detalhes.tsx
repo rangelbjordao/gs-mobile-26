@@ -43,10 +43,19 @@ export default function DetalhesTour() {
               const bookedSpots = d.bookedSpots ?? 0;
               const availableSpots = d.availableSpots ?? Math.max(totalSpots - bookedSpots, 0);
 
+              let dataFormatada = "A definir";
+              if (d.departureDate || d.departure_date) {
+                const dataBruta = d.departureDate ?? d.departure_date;
+                const dataObjeto = new Date(dataBruta);
+                dataFormatada = !isNaN(dataObjeto.getTime())
+                  ? dataObjeto.toLocaleDateString('pt-BR')
+                  : dataBruta;
+              }
+
               return {
                 id: Number(d.id),
                 tourId: Number(d.tourId ?? d.tour?.id),
-                departureDate: d.departureDate ?? "A definir",
+                departureDate: dataFormatada,
                 availableSpots,
               };
             });
