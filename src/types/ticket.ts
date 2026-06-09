@@ -8,6 +8,7 @@ export interface TicketBackend {
   tourName?: string;
   destino?: string;
   dataPartida?: string;
+  tourId?: number;
 }
 
 export interface DataDisponivel {

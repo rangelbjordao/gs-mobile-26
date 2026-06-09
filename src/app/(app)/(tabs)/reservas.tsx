@@ -33,23 +33,28 @@ export default function Reservas() {
       setTodasDatas(tourDates);
 
       const rotasAgendadas = ticketsRaw.map((ticket: any) => {
-        const dataRelacionada = tourDates.find((d: any) => Number(d.id) === Number(ticket.tourDateId));
-        const idTourRelacionado = dataRelacionada?.tourId ?? dataRelacionada?.tour?.id;
+        const idDaDataNoTicket = ticket.tourDateId ?? ticket.tour_date_id;
+        const idUserNoTicket = ticket.userId ?? ticket.user_id;
+
+        const dataRelacionada = tourDates.find((d: any) => Number(d.id) === Number(idDaDataNoTicket));
+
+        const idTourRelacionado = dataRelacionada?.tourId ?? dataRelacionada?.tour_id ?? dataRelacionada?.tour?.id;
         const tourRelacionado = idTourRelacionado ? tours.find((t: any) => t.id === idTourRelacionado) : null;
 
         let dataFormatada = "A definir";
-        if (dataRelacionada?.departureDate) {
-          const dataObjeto = new Date(dataRelacionada.departureDate);
-          dataFormatada = !isNaN(dataObjeto.getTime()) ? dataObjeto.toLocaleDateString('pt-BR') : dataRelacionada.departureDate;
+        if (dataRelacionada?.departureDate || dataRelacionada?.departure_date) {
+          const dataBruta = dataRelacionada.departureDate ?? dataRelacionada.departure_date;
+          const dataObjeto = new Date(dataBruta);
+          dataFormatada = !isNaN(dataObjeto.getTime()) ? dataObjeto.toLocaleDateString('pt-BR') : dataBruta;
         }
 
         return {
           id: ticket.id,
-          userId: ticket.userId,
-          tourDateId: ticket.tourDateId,
-          status: ticket.status ?? "CONFIRMED",
-          bookingDate: ticket.bookingDate,
-          price: Number(ticket.price ?? 0),
+          userId: idUserNoTicket,
+          tourDateId: idDaDataNoTicket,
+          status: ticket.status ?? "PENDING",
+          bookingDate: ticket.bookingDate ?? ticket.booking_date,
+          price: Number(ticket.price ?? ticket.tour?.price ?? 0),
           tourName: tourRelacionado?.name ?? "Missão Orbital",
           destino: tourRelacionado?.destination ?? "Espaço Profundo",
           dataPartida: dataFormatada,
@@ -59,7 +64,7 @@ export default function Reservas() {
 
       setReservas(rotasAgendadas);
     } catch (error) {
-      console.log("[Reservas] Erro ao carregar reservas:", error);
+      console.log("[Reservas] Erro crítico no mapeamento:", error);
       setReservas([]);
     } finally {
       setLoading(false);
@@ -100,9 +105,9 @@ export default function Reservas() {
 
   const handleAbrirModalDatas = (ticketId: number, tourId: number, atualTourDateId: number) => {
     const alternativas = todasDatas.filter((d: any) => {
-      const idDoTour = d.tourId ?? d.tour?.id;
-      const totalSpots = d.totalSpots ?? 10;
-      const bookedSpots = d.bookedSpots ?? 0;
+      const idDoTour = d.tourId ?? d.tour_id ?? d.tour?.id;
+      const totalSpots = d.totalSpots ?? d.total_spots ?? 10;
+      const bookedSpots = d.bookedSpots ?? d.booked_spots ?? 0;
       const vagasLivres = d.availableSpots ?? (totalSpots - bookedSpots);
 
       return Number(idDoTour) === Number(tourId) && Number(d.id) !== Number(atualTourDateId) && vagasLivres > 0;
@@ -124,7 +129,7 @@ export default function Reservas() {
     setLoading(true);
 
     try {
-      await api.put(`/tickets/${ticketSendoAlterado}`, { tourDateId: novaTourDateId });
+      await api.put(`/tickets/${ticketSendoAlterado}`, { tourDateId: novaTourDateId, tour_date_id: novaTourDateId });
       Alert.alert('Sucesso', 'A data da sua viagem foi alterada com sucesso!');
       carregarDadosCompletos();
     } catch (error) {
@@ -166,7 +171,7 @@ export default function Reservas() {
         renderItem={({ item }) => (
           <CardReserva
             item={item}
-            onAlterarData={() => handleAbrirModalDatas(item.id, (item as any).tourId, item.tourDateId)}
+            onAlterarData={() => handleAbrirModalDatas(item.id, item.tourId!, item.tourDateId)}
             onCancelarReserva={() => handleCancelarReserva(item.id)}
           />
         )}
