@@ -35,7 +35,7 @@ module.exports = {
       package: "com.rangel.gsmobile26",
       adaptiveIcon: {
         foregroundImage: "./assets/images/adaptive-icon.png",
-        backgroundColor: "#ffffff",
+        backgroundColor: "#0A1128",
       },
       edgeToEdgeEnabled: true,
       predictiveBackGestureEnabled: false,
