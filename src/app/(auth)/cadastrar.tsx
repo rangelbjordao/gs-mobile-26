@@ -67,7 +67,7 @@ export default function Cadastrar() {
       <Text style={styles.subtitle}>Cadastre-se para acessar a plataforma</Text>
 
       <InputCustomizado
-        label="Nome Completo"
+        label="Nome"
         placeholder="Digite seu nome"
         value={nome}
         onChangeText={setNome}
