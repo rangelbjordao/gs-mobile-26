@@ -15,12 +15,12 @@ if (!commitHash) {
 
 module.exports = {
   expo: {
-    name: "gs-mobile-26",
+    name: "OrbitPass",
     slug: "gs-mobile-26",
     version: "1.0.0",
     orientation: "portrait",
     icon: "./assets/images/icon.png",
-    scheme: "gsmobile26",
+    scheme: "orbitpass",
     userInterfaceStyle: "automatic",
     newArchEnabled: true,
     splash: {
@@ -32,6 +32,7 @@ module.exports = {
       supportsTablet: true,
     },
     android: {
+      package: "com.rangel.gsmobile26",
       adaptiveIcon: {
         foregroundImage: "./assets/images/adaptive-icon.png",
         backgroundColor: "#ffffff",
@@ -50,6 +51,9 @@ module.exports = {
     },
     extra: {
       commitHash: commitHash,
+      eas: {
+        projectId: "1115d3f6-9ea9-49c2-aedb-e992b0852280",
+      },
     },
   },
 };
