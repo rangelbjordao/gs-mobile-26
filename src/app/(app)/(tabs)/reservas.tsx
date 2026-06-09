@@ -129,7 +129,10 @@ export default function Reservas() {
     setLoading(true);
 
     try {
-      await api.put(`/tickets/${ticketSendoAlterado}`, { tourDateId: novaTourDateId, tour_date_id: novaTourDateId });
+      await api.put(`/tickets/${ticketSendoAlterado}`, {
+        tourDateId: novaTourDateId
+      });
+
       Alert.alert('Sucesso', 'A data da sua viagem foi alterada com sucesso!');
       carregarDadosCompletos();
     } catch (error) {
